@@ -1,0 +1,566 @@
+import * as THREE from 'three';
+import { Sound } from './audio.js';
+import { TextPanel } from './textpanel.js';
+import { TX } from './texte.js';
+import {
+  Sky, Grave, Surface, Clods, LightPresences, DarkPresences, LightGate, EmberOpening,
+  Companion, Cemetery, DEFAULT_GRAVE,
+} from './world.js';
+
+// ======================================================================
+// Grundgerüst
+// ======================================================================
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.xr.enabled = true;
+renderer.xr.setReferenceSpaceType('local-floor');
+renderer.xr.setFoveation(1);
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
+
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.02, 600);
+camera.position.set(0, 1.15, 0); // Sitzhöhe am Bildschirm; in VR übernimmt das Headset
+const rig = new THREE.Group();
+rig.add(camera);
+scene.add(rig);
+
+// Licht
+const hemi = new THREE.HemisphereLight(0xdfe6ee, 0x3a2a1c, 0);
+scene.add(hemi);
+const residual = new THREE.PointLight(0x9aa6b4, 0, 2.6, 2); // Restschimmer an den Erdwänden
+camera.add(residual);
+const sun = new THREE.DirectionalLight(0xfff4e2, 0);
+sun.position.set(-20, 30, 10);
+scene.add(sun);
+
+// Welt
+const sky = new Sky(scene);
+const grave = new Grave(scene);
+const surface = new Surface(scene, grave.tex);
+const clods = new Clods(grave.group);
+const lightPresences = new LightPresences(grave.group);
+const darkPresences = new DarkPresences(grave.group);
+const gate = new LightGate(scene);
+const ember = new EmberOpening(grave);
+const companionA = new Companion(scene, 'good');
+const companionB = new Companion(scene, 'bad');
+const cemetery = new Cemetery(scene);
+const panel = new TextPanel(scene);
+
+// Heller, weicher Boden für die Weite des Grabes (Weg A)
+const softFloorMat = new THREE.MeshStandardMaterial({ color: 0xf0e4c9, roughness: 1, transparent: true, opacity: 0 });
+const softFloor = new THREE.Mesh(new THREE.CircleGeometry(150, 48), softFloorMat);
+softFloor.rotation.x = -Math.PI / 2;
+softFloor.position.y = 0.003;
+softFloor.visible = false;
+scene.add(softFloor);
+const sound = new Sound();
+
+// Blende vor den Augen (schwarz / grau / weiß)
+const fadeMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 1, side: THREE.BackSide, depthTest: false, depthWrite: false, fog: false });
+const fadeMesh = new THREE.Mesh(new THREE.SphereGeometry(0.25, 16, 12), fadeMat);
+fadeMesh.renderOrder = 999;
+camera.add(fadeMesh);
+
+// ======================================================================
+// Zeitsteuerung (Promise-basiert, läuft im Render-Loop – auch in VR)
+// ======================================================================
+
+let now = 0;
+const waits = [];
+const tweens = [];
+let holdSkip = false;   // Seitentaste / Taste K gehalten
+let ttsEnabled = false;
+
+function wait(sec, skippable = false) {
+  return new Promise((res) => waits.push({ until: now + sec, res, skippable }));
+}
+function skipText() {
+  for (const w of waits) if (w.skippable) w.until = now;
+  if (ttsEnabled && window.speechSynthesis) window.speechSynthesis.cancel();
+}
+const ease = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+function tween(sec, fn, e = ease) {
+  return new Promise((res) => tweens.push({ start: now, dur: Math.max(0.001, sec), fn, res, e }));
+}
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function fadeTo(color, opacity, sec) {
+  const c0 = fadeMat.color.clone();
+  const c1 = new THREE.Color(color);
+  const o0 = fadeMat.opacity;
+  return tween(sec, (t) => {
+    fadeMat.color.copy(c0).lerp(c1, t);
+    fadeMat.opacity = lerp(o0, opacity, t);
+  });
+}
+
+function speak(text) {
+  if (!ttsEnabled || !window.speechSynthesis || !text) return Promise.resolve();
+  return new Promise((res) => {
+    const u = new SpeechSynthesisUtterance(text.replace(/[„“‚‘]/g, ''));
+    u.lang = 'de-DE'; u.rate = 0.92;
+    u.onend = res; u.onerror = res;
+    window.speechSynthesis.speak(u);
+    setTimeout(res, 40000);
+  });
+}
+
+// Text zeigen, Lesezeit abwarten (per Trigger überspringbar), ausblenden
+async function say(entry, extra = 0) {
+  panel.show(entry);
+  const len = (entry.de || '').length + (entry.ar || '').length * 0.5;
+  const sec = Math.max(3.5, 2.5 + len * 0.055) + extra;
+  await Promise.all([wait(sec, true), ttsEnabled ? Promise.race([speak(entry.de), wait(9999, true)]) : null]);
+  panel.hide();
+  await wait(0.8);
+}
+
+// ======================================================================
+// Hilfen für Szenen
+// ======================================================================
+
+const headPos = new THREE.Vector3();
+function head() { camera.getWorldPosition(headPos); return headPos; }
+
+function setDay(level) {
+  hemi.color.set(0xdfe6ee); hemi.groundColor.set(0x3a2a1c);
+  hemi.intensity = 1.5 * level;
+}
+
+function resetWorld() {
+  clods.clear();
+  grave.reset();
+  lightPresences.level = 0;
+  darkPresences.level = 0;
+  gate.level = 0;
+  ember.level = 0;
+  companionA.level = 0;
+  companionB.level = 0;
+  cemetery.group.visible = false;
+  surface.visible = false;
+  sky.opacity = 0;
+  scene.fog = null;
+  hemi.intensity = 0;
+  sun.intensity = 0;
+  softFloor.visible = false;
+  softFloorMat.opacity = 0;
+  residual.intensity = 0;
+  rig.position.set(0, 0, 0);
+}
+
+// ======================================================================
+// Szenen
+// ======================================================================
+
+async function sceneIntro() {
+  resetWorld();
+  await fadeTo(0x000000, 1, 0.01);
+  await wait(1.5);
+  await say(TX.aktTitel, 1);
+  await say(TX.ersteStation);
+}
+
+// ---------- 3.0 Die Beerdigung ----------
+async function sceneBurial() {
+  resetWorld();
+  grave.centerOn(head());
+  surface.group.position.copy(grave.group.position);
+  surface.visible = true;
+  sky.set('#a7b6c6', '#e7e4dc');
+  sky.opacity = 1;
+  setDay(1);
+  sound.setLevel('wind', 0.35, 3);
+  await fadeTo(0x000000, 0, 4);
+  await wait(3);
+
+  // Erde fällt – parallel dazu der Text über die drei, die folgen
+  const shovels = 14;
+  const textRun = (async () => { await wait(4); await say(TX.dreiFolgen, 6); })();
+  for (let i = 0; i < shovels; i++) {
+    const d = grave.dims;
+    clods.spawn(7, d);
+    const gp = grave.group.position;
+    sound.earth(gp.x + (Math.random() - 0.5) * 0.6, d.h, gp.z + lerp(d.back, d.front, d.cover), 0.9);
+    const c0 = d.cover, c1 = (i + 1) / shovels;
+    await tween(0.9, (t) => {
+      d.cover = lerp(c0, c1, t);
+      grave.apply();
+      setDay(Math.pow(1 - d.cover, 0.8));
+      residual.intensity = 0.25 * d.cover;
+      sound.setLevel('wind', 0.35 * (1 - d.cover), 0.2);
+    });
+    await wait(1.4 + Math.random() * 0.8);
+  }
+  await textRun;
+  surface.visible = false;
+  sky.opacity = 0;
+  sound.setLevel('wind', 0, 1);
+  sound.thud(0.5);
+
+  // Dunkelheit – die Schritte gehen fort
+  await wait(2.5);
+  sound.footstepsAway(14, 7);
+  await wait(1.5);
+  await say(TX.sandalen, 5);
+  await wait(5);
+  // Stille
+  await wait(6);
+  await say(TX.barzakh, 1);
+  await wait(2);
+}
+
+// ---------- 3A Der gläubige Diener ----------
+async function scenePathA() {
+  resetWorld();
+  grave.centerOn(head());
+  grave.dims.cover = 1; grave.apply();
+  residual.color.set(0x9aa6b4);
+  residual.intensity = 0.25;
+  await fadeTo(0x000000, 1, 0.01);
+  await say(TX.titelA, 1);
+  await fadeTo(0x000000, 0, 2);
+  await wait(2);
+
+  await say(TX.rueckgabeA);
+  // Der Diener wird aufgesetzt
+  await tween(5, (t) => { rig.position.y = lerp(0, 0.25, t); });
+  // Zwei Präsenzen: Licht ohne Quelle
+  await tween(5, (t) => { lightPresences.level = t; });
+  await wait(1.5);
+
+  for (const [q, a] of TX.fragenA) {
+    await say(q, 0.5);
+    await say(a, 0.5);
+  }
+  await say(TX.festesWort);
+  await say(TX.rufA, 1);
+
+  // Das Grab weitet sich, so weit der Blick reicht
+  const d = grave.dims;
+  const s0 = { ...d };
+  sky.set('#fff7e6', '#f2e4c6');
+  scene.fog = new THREE.FogExp2(0xf4e8cf, 0.0);
+  sound.setLevel('garden', 0.45, 18);
+  sound.drip();
+  const textRun = (async () => { await wait(6); await say(TX.weiteA, 3); })();
+  await tween(22, (t) => {
+    const k = Math.pow(t, 1.6);
+    d.hw = lerp(s0.hw, 70, k);
+    d.front = lerp(s0.front, -70, k);
+    d.back = lerp(s0.back, 70, k);
+    d.h = lerp(s0.h, 40, k);
+    grave.apply();
+    grave.setOpacity(1 - THREE.MathUtils.smoothstep(t, 0.15, 0.75), false);
+    softFloor.visible = true;
+    softFloor.position.x = grave.group.position.x;
+    softFloor.position.z = grave.group.position.z;
+    softFloorMat.opacity = THREE.MathUtils.smoothstep(t, 0.2, 0.8);
+    sky.opacity = THREE.MathUtils.smoothstep(t, 0.1, 0.6);
+    scene.fog.density = 0.035 * t;
+    hemi.color.set(0xfff3dc); hemi.groundColor.set(0xcdb48e);
+    hemi.intensity = lerp(0, 1.6, t);
+    lightPresences.level = 1 - t;
+    residual.intensity = 0.25 * (1 - t);
+  }, (x) => x);
+  gate.group.position.set(head().x + 7.5, 0, head().z - 6.5);
+  gate.group.lookAt(head().x, 0, head().z);
+  await tween(6, (t) => { gate.level = t; });
+  await textRun;
+  await say(TX.platzA);
+
+  // Der Gefährte
+  const h = head();
+  companionA.group.position.set(h.x, 0, h.z - 9);
+  companionA.group.lookAt(h.x, 0, h.z);
+  const textRun2 = (async () => { await wait(2); await say(TX.gefaehrteA[0], 1); })();
+  await tween(12, (t) => {
+    companionA.level = Math.min(1, t * 2);
+    companionA.group.position.z = lerp(h.z - 9, h.z - 2.6, t);
+  });
+  await textRun2;
+  for (const e of TX.gefaehrteA.slice(1)) await say(e, 0.5);
+  await say(TX.brautA, 1.5);
+
+  // Ruhe – weiches Abendlicht
+  sound.setLevel('garden', 0.12, 8);
+  await tween(8, (t) => {
+    hemi.intensity = lerp(1.6, 0.4, t);
+    companionA.level = 1 - t;
+    gate.level = 1 - 0.6 * t;
+  });
+  await fadeTo(0x0a0806, 1, 4);
+  sound.allOff(3);
+  await wait(2);
+}
+
+// ---------- Übergang ----------
+async function sceneTransition() {
+  await fadeTo(0x5a5a5a, 1, 2.5);
+  sound.breath(0.45);
+  await wait(4);
+  await say(TX.titelB, 1.5);
+  await fadeTo(0x000000, 1, 2);
+}
+
+// ---------- 3B Der ungläubige Diener ----------
+async function scenePathB() {
+  resetWorld();
+  grave.centerOn(head());
+  grave.dims.cover = 1; grave.apply();
+  residual.color.set(0x7d8a9a);
+  residual.intensity = 0.9;
+  await fadeTo(0x000000, 0, 3);
+  await wait(2);
+
+  await say(TX.rueckgabeB);
+  sound.setLevel('sub', 0.32, 6);
+  await tween(5, (t) => { rig.position.y = lerp(0, 0.25, t); });
+  await tween(5, (t) => { darkPresences.level = t; residual.intensity = lerp(0.9, 1.3, t); });
+  await wait(1.5);
+
+  for (const [q, a] of TX.fragenB) {
+    await say(q, 0.5);
+    await say(a, 1.2);
+  }
+  await say(TX.laDarayta, 1);
+  await say(TX.rufB, 1);
+
+  // Öffnung zum Feuer – nur Glut
+  sound.setLevel('heat', 0.35, 6);
+  await tween(5, (t) => { ember.level = t; darkPresences.level = 1 - t * 0.5; });
+  await say(TX.engeB, 1);
+
+  // Komfort-Hinweis, dann die Enge (überspringbar durch Halten der Seitentaste)
+  await say(TX.hinweisEnge, -1);
+  if (!holdSkip) {
+    const d = grave.dims;
+    const s0 = { ...d };
+    const hp = head();
+    const gp = grave.group.position;
+    const localZ = hp.z - gp.z;
+    const targetH = Math.max(hp.y + 0.38, 1.25);
+    sound.grind(6);
+    let skipped = false;
+    await tween(6, (t) => {
+      if (holdSkip) skipped = true;
+      if (skipped) return;
+      d.hw = lerp(s0.hw, 0.4, t);
+      d.front = lerp(s0.front, localZ - 0.45, t);
+      d.back = lerp(s0.back, localZ + 0.4, t);
+      d.h = lerp(s0.h, targetH, t);
+      grave.apply();
+    });
+  }
+  fadeMat.color.set(0x000000); fadeMat.opacity = 1;
+  sound.thud(1);
+  sound.setLevel('heat', 0.15, 0.5);
+  grave.reset(); grave.dims.cover = 1; grave.apply();
+  darkPresences.level = 0;
+  await wait(3);
+
+  // Der Gefährte – in rotem Halbdunkel
+  const h = head();
+  companionB.group.position.set(h.x, 0, h.z - 1.05);
+  companionB.group.lookAt(h.x, 0, h.z);
+  sound.setLevel('heat', 0.3, 3);
+  await fadeTo(0x000000, 0, 2.5);
+  const textRun = say(TX.gefaehrteB[0], 1);
+  await tween(4, (t) => { companionB.level = t; });
+  await textRun;
+  for (const e of TX.gefaehrteB.slice(1)) await say(e, 0.6);
+
+  await say(TX.schreiB, 2);
+  await fadeTo(0x000000, 1, 0.4);
+  sound.allOff(0.3);
+  ember.level = 0;
+  companionB.level = 0;
+
+  // An der Oberfläche: Stille. Nur die Vögel fliegen auf.
+  await wait(1.5);
+  grave.setOpacity(0);
+  rig.position.set(0, 0, 0);
+  cemetery.reset();
+  cemetery.group.visible = true;
+  cemetery.group.position.set(head().x, 0, head().z + 3);
+  sky.set('#a9b8c8', '#e6e3db');
+  sky.opacity = 1;
+  scene.fog = new THREE.Fog(0xd9d8d2, 18, 90);
+  hemi.color.set(0xdfe6ee); hemi.groundColor.set(0x4a4232);
+  hemi.intensity = 1.3;
+  sun.intensity = 1.6;
+  residual.intensity = 0;
+  sound.setLevel('wind', 0.12, 3);
+  cemetery.walking = true;
+  await fadeTo(0x000000, 0, 2.5);
+  await wait(5);
+  cemetery.scatter(sound);
+  await wait(9);
+  await say(TX.vorgefuehrtB, 1.5);
+  await wait(2);
+  cemetery.walking = false;
+  await fadeTo(0x000000, 1, 4);
+  sound.allOff(2);
+}
+
+async function sceneEnd() {
+  resetWorld();
+  await say(TX.pruefhinweis, 1);
+  panel.show(TX.ende);
+  ended = true;
+}
+
+// ======================================================================
+// Ablauf
+// ======================================================================
+
+let ended = false;
+let running = false;
+
+async function run(chapter) {
+  running = true;
+  if (chapter === 'all' || chapter === 'burial') {
+    await sceneIntro();
+    await sceneBurial();
+  }
+  if (chapter === 'all' || chapter === 'a') await scenePathA();
+  if (chapter === 'all') await sceneTransition();
+  if (chapter === 'all' || chapter === 'b') {
+    if (chapter === 'b') { await fadeTo(0x000000, 1, 0.01); await say(TX.titelB, 1); }
+    await scenePathB();
+  }
+  await sceneEnd();
+}
+
+// ======================================================================
+// Eingabe
+// ======================================================================
+
+function onSelect() {
+  if (ended) { location.reload(); return; }
+  skipText();
+}
+for (let i = 0; i < 2; i++) {
+  const c = renderer.xr.getController(i);
+  c.addEventListener('select', onSelect);
+  c.addEventListener('squeezestart', () => { holdSkip = true; });
+  c.addEventListener('squeezeend', () => { holdSkip = false; });
+  rig.add(c);
+}
+
+// Bildschirm-Modus: Ziehen zum Umsehen
+let yaw = 0, pitch = 0, dragging = false, lx = 0, ly = 0, moved = 0;
+renderer.domElement.addEventListener('pointerdown', (e) => { dragging = true; lx = e.clientX; ly = e.clientY; moved = 0; });
+window.addEventListener('pointerup', () => { if (dragging && moved < 6 && running) onSelect(); dragging = false; });
+window.addEventListener('pointermove', (e) => {
+  if (!dragging || renderer.xr.isPresenting) return;
+  const dx = e.clientX - lx, dy = e.clientY - ly;
+  moved += Math.abs(dx) + Math.abs(dy);
+  lx = e.clientX; ly = e.clientY;
+  yaw -= dx * 0.004; pitch -= dy * 0.004;
+  pitch = Math.max(-1.45, Math.min(1.45, pitch));
+});
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && running) { e.preventDefault(); onSelect(); }
+  if (e.code === 'KeyK') holdSkip = true;
+});
+window.addEventListener('keyup', (e) => { if (e.code === 'KeyK') holdSkip = false; });
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ======================================================================
+// Render-Loop
+// ======================================================================
+
+const clock = new THREE.Clock();
+const SPEED = Number(new URLSearchParams(location.search).get('speed')) || 1; // nur für Tests
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(0.1, clock.getDelta()) * SPEED;
+  now += dt;
+
+  for (let i = tweens.length - 1; i >= 0; i--) {
+    const tw = tweens[i];
+    const t = Math.min(1, (now - tw.start) / tw.dur);
+    tw.fn(tw.e(t));
+    if (t >= 1) { tweens.splice(i, 1); tw.res(); }
+  }
+  for (let i = waits.length - 1; i >= 0; i--) {
+    if (now >= waits[i].until) { const w = waits.splice(i, 1)[0]; w.res(); }
+  }
+
+  if (!renderer.xr.isPresenting) camera.rotation.set(pitch, yaw, 0, 'YXZ');
+
+  clods.update(dt);
+  ember.update(now);
+  cemetery.update(dt, now);
+  camera.updateMatrixWorld();
+  sky.follow(head());
+  panel.update(camera, dt);
+  sound.updateListener(camera);
+
+  renderer.render(scene, camera);
+});
+
+// ======================================================================
+// Start
+// ======================================================================
+
+const overlay = document.getElementById('overlay');
+const btnVR = document.getElementById('btn-vr');
+const btnDesk = document.getElementById('btn-desk');
+const status = document.getElementById('xrstatus');
+const hud = document.getElementById('hud');
+
+async function prepare() {
+  ttsEnabled = document.getElementById('tts').checked;
+  sound.init();
+  await sound.resume();
+  try { await document.fonts.load('600 40px "Noto Naskh Arabic"'); } catch (e) { /* Systemschrift */ }
+  // Kurzer stiller Ton, damit Safari/Quest Audio freigeben
+  if (ttsEnabled && window.speechSynthesis) window.speechSynthesis.speak(new SpeechSynthesisUtterance(' '));
+}
+
+btnDesk.addEventListener('click', async () => {
+  await prepare();
+  overlay.classList.add('hidden');
+  hud.style.display = 'block';
+  run(document.getElementById('chapter').value);
+});
+
+btnVR.addEventListener('click', async () => {
+  await prepare();
+  try {
+    const session = await navigator.xr.requestSession('immersive-vr', {
+      optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking'],
+    });
+    session.addEventListener('end', () => location.reload());
+    await renderer.xr.setSession(session);
+    overlay.classList.add('hidden');
+    run(document.getElementById('chapter').value);
+  } catch (err) {
+    status.textContent = 'VR konnte nicht gestartet werden: ' + err.message;
+  }
+});
+
+(async () => {
+  if (navigator.xr && await navigator.xr.isSessionSupported('immersive-vr').catch(() => false)) {
+    btnVR.disabled = false;
+    status.textContent = 'VR bereit. Setz das Headset auf und tippe auf „In VR starten“.';
+  } else if (!window.isSecureContext) {
+    status.textContent = 'VR benötigt eine HTTPS-Adresse. Siehe Anleitung im README.';
+  } else {
+    status.textContent = 'Kein VR-Headset erkannt. Du kannst den Prototyp am Bildschirm ansehen.';
+  }
+})();
+
+// Für automatisierte Tests
+window.__akhira = { run, scene, camera, grave, TX, get now() { return now; }, skipText, setLook: (y, p) => { yaw = y; pitch = p; } };

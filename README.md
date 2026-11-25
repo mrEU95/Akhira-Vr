@@ -10,6 +10,7 @@ ausschließlich nach Quran und authentischer Sunnah.
 |---|---|
 | [`drehbuch/DREHBUCH.md`](drehbuch/DREHBUCH.md) | Vollständiges Drehbuch: alle Szenen mit Bild, Ton, Arabisch, Deutsch, Quelle, Dauer und Prüfpunkten |
 | [`drehbuch/GELEHRTEN-PRUEFUNG.md`](drehbuch/GELEHRTEN-PRUEFUNG.md) | Prüfliste für den Gelehrten: alle Quellen, alle offenen Fragen |
+| [`prototyp/`](prototyp/README.md) | WebXR-Prototyp Akt III (Grab) für den Quest-Browser, mit Anleitung |
 
 ## Grundidee
 
@@ -23,5 +24,5 @@ alles aus eigener Sicht.
 - [x] Drehbuch, Entwurf 1
 - [ ] Prüfung durch einen Gelehrten
 - [ ] Storyboard
-- [ ] WebXR-Prototyp Akt III (Grab)
+- [x] WebXR-Prototyp Akt III (Grab)
 - [ ] Produktion

@@ -1,0 +1,79 @@
+# Prototyp Akt III – Das Grab (WebXR)
+
+Läuft direkt im **Browser der Meta Quest**, ohne App-Store und ohne Installation.
+Gebaut mit three.js (lokal in `lib/`) und WebXR. Alle Klänge werden zur Laufzeit erzeugt, es gibt keine Audiodateien.
+
+## Inhalt
+
+| Abschnitt | Szenen aus dem Drehbuch | Was passiert |
+|---|---|---|
+| Beerdigung | 3.0 | Blick aus dem Grab nach oben, gesichtslose Trauergäste, Erde fällt, Dunkelheit, die Schritte entfernen sich, Stille |
+| Weg A | 3A – 3A.3 | Aufsetzen, zwei Präsenzen als Licht ohne Quelle, Befragung, das Grab weitet sich bis zum Horizont, Tor aus Licht, der Gefährte (gute Taten) |
+| Übergang | – | Grau, Atemzug, „Und der ungläubige Diener …“ |
+| Weg B | 3B – 3B.4 | Zwei Flächen tieferer Dunkelheit, „Hāh hāh, lā adrī“, Öffnung zur Glut, das Grab wird eng (überspringbar), der Gefährte (schlechte Taten), an der Oberfläche fliegen die Vögel auf, aber der Mensch hört nichts |
+
+Dauer: ca. 10 Minuten für den ganzen Akt. Abschnitte lassen sich auf der Startseite einzeln wählen.
+
+## Steuerung
+
+| Quest | Bildschirm | Funktion |
+|---|---|---|
+| Trigger / Pinch (Daumen + Zeigefinger) | Klick / Leertaste | Text weiterschalten |
+| Seitentaste (Grip) gedrückt halten | Taste K gedrückt halten | Die enge Szene überspringen |
+| Kopf bewegen | Maus ziehen | Umsehen |
+
+**Empfehlung:** Im Sitzen erleben, mit Kopfhörern.
+
+## Auf die Quest bringen
+
+WebXR funktioniert nur über **HTTPS** (oder `localhost`). Drei Wege:
+
+### Weg 1: Netlify Drop (am schnellsten, ca. 1 Minute)
+1. Am PC <https://app.netlify.com/drop> öffnen.
+2. Den Ordner `prototyp` in das Fenster ziehen.
+3. Du bekommst eine HTTPS-Adresse wie `https://irgendwas.netlify.app`.
+4. In der Quest den **Browser** öffnen, die Adresse eingeben und auf **„In VR starten“** tippen.
+
+### Weg 2: GitHub Pages
+1. Im Repository: **Settings → Pages → Build and deployment**
+2. Source: **Deploy from a branch**, Branch: `claude/vr-video-jenseits-islam-uqruap` (oder `main` nach dem Mergen), Ordner: `/ (root)`
+3. Nach ca. 1 Minute ist der Prototyp erreichbar unter
+   `https://<dein-github-name>.github.io/Akhira-Vr/prototyp/`
+   (Bei privaten Repositories ist GitHub Pages nur mit einem bezahlten GitHub-Plan verfügbar.)
+
+### Weg 3: Lokal mit USB-Kabel (für Entwickler)
+```bash
+cd prototyp
+python3 -m http.server 8000
+adb reverse tcp:8000 tcp:8000     # Quest per USB, Entwicklermodus aktiv
+```
+Dann in der Quest `http://localhost:8000` öffnen.
+
+## Am PC testen
+
+```bash
+cd prototyp
+python3 -m http.server 8000
+```
+Dann `http://localhost:8000` öffnen und **„Am Bildschirm ansehen“** wählen.
+Mit `?speed=3` an der Adresse läuft alles dreimal so schnell (nur zum Testen).
+
+## Was dieser Prototyp (noch) nicht hat
+
+- **Keine Stimmen und keine Rezitation.** Texte erscheinen als Tafeln. Eine Platzhalter-Vorlesestimme (Browser-Sprachausgabe) kann auf der Startseite eingeschaltet werden, nur zum Testen des Timings.
+- **Keine Erinnerungsbilder** (Wudūʾ, Gebet usw. aus 3A.3/3B.3), sie kommen in der Produktion.
+- **Einfache Grafik.** Es geht um Raum, Licht, Ton und Timing, nicht um das endgültige Aussehen.
+- **Texte ungeprüft.** Alle arabischen Texte und Übersetzungen sind Entwurf (siehe `drehbuch/GELEHRTEN-PRUEFUNG.md`).
+
+## Dateien
+
+| Datei | Inhalt |
+|---|---|
+| `index.html` | Startseite mit Hinweis, Abschnittswahl, Start-Buttons |
+| `js/main.js` | Ablauf der Szenen, Steuerung, Render-Loop |
+| `js/world.js` | Grab, Himmel, Präsenzen, Gefährte, Friedhof |
+| `js/texte.js` | Alle Texte (Arabisch, Deutsch, Quelle). Hier werden Korrekturen des Gelehrten eingetragen. |
+| `js/audio.js` | Prozeduraler Raumklang (Wind, Erde, Schritte, Glut …) |
+| `js/textpanel.js` | Schwebende Texttafeln in VR |
+| `lib/` | three.js 0.160.0 (MIT-Lizenz) |
+| `fonts/` | Noto Naskh Arabic (SIL Open Font License) |
