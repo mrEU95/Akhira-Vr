@@ -42,6 +42,7 @@ Diese Regeln gelten für jede Szene. Sie haben Vorrang vor jeder filmischen Idee
 | G9 | **Kein Mensch wird zum Kāfir erklärt.** Beide Diener sind gesichtslose Typen aus dem Hadith. | Der Film urteilt nicht über Personen |
 | G10 | **Nur sahih/hasan.** Schwache Überlieferungen werden nicht verwendet (Liste in der Prüfliste). | Genauigkeit |
 | G11 | **Hoffnung und Furcht im Gleichgewicht.** Der Film endet mit Tawba und Barmherzigkeit. | Az-Zumar 39:53 |
+| G12 | **Kein Geschöpf hat ein Gesicht.** Menschen, Tiere und Gleichnisgestalten erscheinen ohne Gesicht und ohne Augen, als Silhouette oder als Lichtform. | Festlegung des Projekts (Prüfung 25.11.2026) |
 
 ### Die Spiegelstruktur
 
@@ -804,11 +805,11 @@ DIENER B (Angst):
 
 `QUELLE` Bukhari 6579 · Muslim 2292
 
-`BILD` Ein Becher aus Licht wird gereicht (von einer Hand, die man nicht sieht – nur der Becher kommt ins Bild). Der Zuschauer trinkt (interaktiv: Hand an den Mund führen). Das Licht wird kühler, der Druck der Hitze fällt ab.
+`BILD` Vor dem Zuschauer: ein **sehr grelles, ovales Licht** – keine Gestalt, keine Hand, kein Körperumriss. Aus diesem Licht kommt **nur ein Becher** hervor und schwebt zum Zuschauer. Der Zuschauer trinkt (interaktiv: Hand an den Mund führen). Das Licht wird kühler, der Druck der Hitze fällt ab.
 
 `TON` Wasser. Ein tiefer, erleichterter Atemzug.
 
-`⚠ PRÜFEN` Das Becken gehört dem Propheten ﷺ, und er reicht daraus. Die gereichte Hand darf daher **nicht** sichtbar sein. Ist auch das Reichen des Bechers aus dem Off zu nah an einer Darstellung? Alternative: Der Zuschauer sieht nur das Becken, kein Becher.
+`FESTGELEGT` Das Becken gehört dem Propheten ﷺ. Von ihm wird **nichts** gezeigt: keine Gliedmaßen, kein Gesicht, keine Stimme, keine menschliche Silhouette. Nur das ovale Licht und der Becher.
 
 ---
 
@@ -1090,9 +1091,9 @@ DIENER B (gebrochen, fast nur ein Hauch):
 
 `QUELLE` Maryam 19:39 (vom Propheten ﷺ in diesem Hadith rezitiert)
 
-`BILD` **Der Widder wird nicht gezeigt.** ⚠ Die Szene bleibt beim Bild der zwei fernen Lichter und dem Nebel dazwischen. Bei „Dann wird er geschlachtet“: Der Nebel zwischen den Lichtern **verschwindet** schlagartig. Nichts trennt mehr die Ewigkeit vom Jetzt.
+`BILD` Im Nebel zwischen den zwei Lichtern erscheint der Widder **als Lichtform** – erkennbar an Umriss und Hörnern, aber **ohne Gesicht und ohne Augen** (G12), weiß-grau schimmernd. Bei „Dann wird er geschlachtet“: Die Lichtform **erlischt** – kein Blut, keine Gewalt –, und mit ihr verschwindet schlagartig der Nebel zwischen den Lichtern. Nichts trennt mehr die Ewigkeit vom Jetzt.
 
-`⚠ PRÜFEN` Wird der Widder angedeutet (Silhouette im Nebel) oder gar nicht gezeigt? Empfehlung: gar nicht.
+`FESTGELEGT` Der Widder wird als gesichtslose Lichtform gezeigt. Das Schlachten wird nur durch das Erlöschen angedeutet.
 
 `BILD` Schwarz.
 

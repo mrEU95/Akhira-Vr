@@ -58,6 +58,19 @@ python3 -m http.server 8000
 Dann `http://localhost:8000` öffnen und **„Am Bildschirm ansehen“** wählen.
 Mit `?speed=3` an der Adresse läuft alles dreimal so schnell (nur zum Testen).
 
+## Splat-Test (`splat-test.html`)
+
+Prüft, ob die Quest fotorealistische 3D-Welten (Gaussian Splats) flüssig darstellt – Grundlage für den Plan, Orte mit dem Handy zu scannen oder per KI (z. B. Marble von World Labs) zu erzeugen.
+
+- **Generierte Testwelt** mit 200.000 bis 2 Millionen Punkten, um die Grenze der Quest zu finden.
+- **Datei vom Gerät** laden: `.ply`, `.spz`, `.splat`, `.ksplat`, `.sog` (Export aus Scaniverse, Polycam, Marble usw.).
+- **Adresse (URL)** einer Splat-Datei laden (der Server muss CORS erlauben).
+- Bildrate wird oben links angezeigt (in VR als kleine Tafel).
+
+Steuerung in VR: linker Stick gehen, rechter Stick drehen (30°-Schritte) und Höhe, A/X Welt umdrehen (viele Scans stehen kopfüber), B/Y zurück zum Start.
+
+Technik: three.js 0.180 und Spark 2.4.0 (`lib/three-0.180`, `lib/spark-2.4.0`, beide MIT-Lizenz). Antialiasing ist bewusst aus (Empfehlung von Spark, vermeidet einen bekannten Hänger der Quest).
+
 ## Was dieser Prototyp (noch) nicht hat
 
 - **Keine Stimmen und keine Rezitation.** Texte erscheinen als Tafeln. Eine Platzhalter-Vorlesestimme (Browser-Sprachausgabe) kann auf der Startseite eingeschaltet werden, nur zum Testen des Timings.

@@ -143,20 +143,18 @@ Bitte bestätigen, dass diese Inhalte zu Recht ausgeschlossen sind:
 | Die Seele schaut beim Waschen und Tragen ihres Körpers zu und spricht | Schwach / umstritten – nicht dargestellt |
 | Detaillierte Beschreibung der Höllenstrafen | Bewusst ausgelassen (Grundsatz G7), nicht weil unauthentisch |
 
-## E. Produktion mit echten Menschen und echten Orten
+## E. Produktion mit KI und gescannten Orten
 
-Geplant ist eine Mischform: Szenen aus dem diesseitigen Leben werden mit echten Darstellern an echten Orten in 3D-360°/VR180 gefilmt, Gesichter bleiben durch Kameraposition und Gegenlicht verborgen. Szenen aus dem Verborgenen (Barzakh, Auferstehung) bleiben fotorealistisch berechnet, Menschen dort nur als Lichtgestalten.
+*Stand 25.11.2026: Echte Dreharbeiten mit Darstellern entfallen. Die Fragen aus Entwurf 1 zu Schauspielern und Drehorten sind damit gegenstandslos.*
+
+Geplant ist: Orte des diesseitigen Lebens werden mit dem Handy gescannt (eigenes Zimmer) oder von einer KI als begehbare 3D-Welt erzeugt (Friedhof, Moscheehof). Menschen und alle Geschöpfe erscheinen nur als gesichtslose Silhouetten oder Lichtformen (G12). Barzakh und Akhira bleiben abstrakt.
 
 | # | Frage | Empfehlung des Autors | ☐ OK / Anmerkung |
 |---|---|---|---|
-| E1 | Ist das Filmen von Menschen (Darstellern) für dieses Projekt grundsätzlich zulässig? (Frage der Bilddarstellung von Lebewesen / Taṣwīr) | Ja, Gesichter verborgen | |
-| E2 | Genügt es, Gesichter durch Bildgestaltung zu verbergen (Rücken, Silhouette, Gegenlicht, Untersicht aus dem Grab), oder müssen sie unkenntlich gemacht werden? | Bildgestaltung, kein Verpixeln | |
-| E3 | Darf ein Darsteller den Verstorbenen spielen (im Leichentuch, auf der Bahre, im Grab)? | Nur aus Ich-Perspektive, Körper nicht sichtbar | |
-| E4 | Ghusl (Totenwaschung): gar nicht zeigen, oder nur Hände, Wasser und Tuch? | Nur Hände, Wasser, Tuch | |
-| E5 | Frauen im Bild (Angehörige, Trauernde) – in welcher Form? | Nur voll bedeckt, aus der Ferne, als Silhouette | |
-| E6 | Dreh auf einem echten muslimischen Friedhof (mit Erlaubnis der Verwaltung) – zulässig, und wo sind die Grenzen? | Nur oberirdisch, keine echten Gräber öffnen; das Grab innen wird als Set gebaut | |
-| E7 | Echtes Janaza-Gebet nachstellen – oder nur andeuten (Reihen von hinten, ohne Ton der Takbīrāt)? | Von hinten, mit echtem Gebetsablauf | |
-| E8 | Menschen auf der Ebene der Versammlung (Akt V) bleiben Lichtgestalten, weil sie laut Bukhari 6527 nackt versammelt werden – bestätigt? | Ja, keine echten Darsteller in Akhira-Szenen | |
+| E1 | Dürfen KI-erzeugte Bilder und 3D-Welten (Orte, Landschaften, Himmel) verwendet werden? | Ja, jede Welt wird vor Verwendung geprüft und von Figuren, Gesichtern und falschen Symbolen bereinigt | |
+| E2 | Darf eine KI-Stimme die deutsche Übersetzung und die Hadithe vorlesen, oder nur ein Mensch? | Menschliche Stimme bevorzugt, KI-Stimme als Übergang | |
+| E3 | Quran-Rezitation: nur echte Aufnahmen eines Qāri' (mit Erlaubnis), keine KI-Rezitation – bestätigt? | Ja | |
+| E4 | Keine von einer KI erzeugte arabische Schrift im Bild, alle Texte werden von Hand gesetzt – bestätigt? | Ja | |
 
 ## F. Abschluss
 

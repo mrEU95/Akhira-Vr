@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Al-ʿAbd · Splat-Test</title>
+<style>
+  :root { --bg: #0b0a09; --fg: #ece6da; --muted: #a39a8b; --line: #2b2722; --accent: #e9d7a8; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  canvas { display: block; }
+  #overlay { position: fixed; inset: 0; overflow-y: auto; z-index: 10; display: flex; justify-content: center; padding: 40px 16px;
+    background: radial-gradient(ellipse at 50% 0%, #1d1913 0%, var(--bg) 70%); }
+  #overlay.hidden { display: none; }
+  .card { max-width: 640px; width: 100%; display: grid; gap: 18px; align-content: start; }
+  h1 { font-size: 30px; font-weight: 600; margin: 0; }
+  p { margin: 0; line-height: 1.55; }
+  .muted { color: var(--muted); }
+  fieldset { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 12px; margin: 0; }
+  legend { padding: 0 6px; color: var(--accent); font-weight: 600; }
+  label.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; cursor: pointer; }
+  select, input[type=text] { background: #15130f; color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 15px; }
+  input[type=text] { flex: 1; min-width: 200px; }
+  input[type=file] { color: var(--muted); max-width: 100%; }
+  .buttons { display: flex; flex-wrap: wrap; gap: 12px; }
+  button { font: inherit; font-size: 17px; padding: 13px 22px; border-radius: 999px; cursor: pointer; border: 1px solid var(--accent); background: var(--accent); color: #1a160f; font-weight: 600; }
+  button.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  #status { color: var(--muted); font-size: 14px; min-height: 20px; }
+  table { border-collapse: collapse; font-size: 14px; }
+  td { padding: 4px 12px 4px 0; vertical-align: top; }
+  td:first-child { color: var(--accent); white-space: nowrap; }
+  #hud { position: fixed; left: 16px; top: 16px; z-index: 5; font: 13px/1.5 ui-monospace, Menlo, monospace; background: rgba(0,0,0,.6);
+    padding: 8px 12px; border-radius: 8px; display: none; white-space: pre; }
+</style>
+</head>
+<body>
+<div id="overlay">
+  <div class="card">
+    <h1>Splat-Test für die Quest</h1>
+    <p class="muted">Prüft, ob die Quest fotorealistische 3D-Welten (Gaussian Splats) flüssig darstellt: Handy-Scans (z. B. Scaniverse, Polycam) oder KI-Welten (z. B. Marble).</p>
+
+    <fieldset>
+      <legend>Welt wählen</legend>
+      <label class="row"><input type="radio" name="src" value="gen" checked> Generierte Testwelt mit
+        <select id="count">
+          <option value="200000">200.000 Punkten</option>
+          <option value="500000" selected>500.000 Punkten</option>
+          <option value="1000000">1 Million Punkten</option>
+          <option value="2000000">2 Millionen Punkten</option>
+        </select>
+      </label>
+      <label class="row"><input type="radio" name="src" value="file"> Datei vom Gerät (.ply, .spz, .splat, .ksplat, .sog)
+        <input type="file" id="file" accept=".ply,.spz,.splat,.ksplat,.sog,.zip">
+      </label>
+      <label class="row"><input type="radio" name="src" value="url"> Adresse
+        <input type="text" id="url" placeholder="https://…/welt.spz" spellcheck="false">
+      </label>
+    </fieldset>
+
+    <div class="buttons">
+      <button id="btn-vr" disabled>In VR starten</button>
+      <button id="btn-desk" class="ghost">Am Bildschirm ansehen</button>
+    </div>
+    <div id="status">Prüfe VR-Unterstützung …</div>
+
+    <fieldset>
+      <legend>Steuerung</legend>
+      <table>
+        <tr><td>Linker Stick</td><td>Gehen</td></tr>
+        <tr><td>Rechter Stick</td><td>Drehen (in 30°-Schritten) · nach oben/unten: Höhe</td></tr>
+        <tr><td>A / X</td><td>Welt umdrehen (falls sie auf dem Kopf steht)</td></tr>
+        <tr><td>B / Y</td><td>Zurück zum Startpunkt</td></tr>
+        <tr><td>Bildschirm</td><td>Maus ziehen: umsehen · W A S D: gehen · Q / E: Höhe · F: umdrehen · R: Start</td></tr>
+      </table>
+      <p class="muted">Oben links in der Brille steht die Bildrate. Die Quest läuft mit 72 oder 90 Bildern pro Sekunde; alles ab etwa 60 fühlt sich flüssig an.</p>
+    </fieldset>
+  </div>
+</div>
+<div id="hud"></div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "./lib/three-0.180/three.module.min.js",
+  "three/addons/": "./lib/three-0.180/addons/",
+  "@sparkjsdev/spark": "./lib/spark-2.4.0/spark.module.min.js"
+} }
+</script>
+<script type="module" src="js/splat-test.js"></script>
+</body>
+</html>
