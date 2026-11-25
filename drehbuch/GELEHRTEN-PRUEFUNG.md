@@ -39,7 +39,7 @@ Diese Liste fasst alles zusammen, was vor der Produktion bestätigt, korrigiert 
 | 6A | Zuschauer überquert den Sirat schnell und sicher – angemessen oder anmaßend? | Offen | |
 | 6B.3 | Zuschauer geht durch das Tor des Feuers, dann Perspektivwechsel nach außen | Ja | |
 | F | Der Tod als Widder – gar nicht zeigen? | Gar nicht zeigen | |
-| E.2 | Einziger frei formulierter Satz: „Sie bitten darum, zurückzukehren. Du bist noch hier.“ | Behalten, klar als Erzählung gekennzeichnet | |
+| E.2 | Der frei formulierte Satz ist ersetzt durch Al-Munāfiqūn 63:10 („…bevor der Tod zu einem von euch kommt und er sagt: ‚Mein Herr, würdest Du mich doch auf eine kurze Frist zurückstellen…‘“) | Festgelegt | |
 | E.4 | Adhān des Fajr als Schlusston | Ja | |
 
 ## C. Quellenverzeichnis
@@ -92,6 +92,7 @@ Bitte Wortlaut und Grad jeder Quelle bestätigen.
 | Maryam 19:39 | F | |
 | Az-Zumar 39:53 | E.4 | |
 | Al-Ḥashr 59:18 | E.4 | |
+| Al-Munāfiqūn 63:10 | E.2 | |
 
 ### Hadith
 

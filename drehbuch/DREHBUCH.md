@@ -1119,11 +1119,15 @@ DIENER B (gebrochen, fast nur ein Hauch):
 
 `QUELLE` Al-Muʾminūn 23:99–100
 
-`TEXT` ÜBS (eigene Stimme, leise, direkt):
-> „Sie bitten darum, zurückzukehren.
-> Du bist noch hier.“
+`BILD` Der Zuschauer sitzt im Zimmer. Nichts geschieht. Das Handy vibriert noch einmal.
 
-`⚠ PRÜFEN` Dies ist der **einzige frei formulierte Satz** des Films (kein Zitat). Ist er zulässig? Er wird durch Stimme und Einblendung klar als Erzählung gekennzeichnet, nicht als Quelle.
+`TEXT` REZ / ÜBS (leise, direkt):
+> **وَأَنفِقُوا مِن مَّا رَزَقْنَاكُم مِّن قَبْلِ أَن يَأْتِيَ أَحَدَكُمُ الْمَوْتُ فَيَقُولَ رَبِّ لَوْلَا أَخَّرْتَنِي إِلَىٰ أَجَلٍ قَرِيبٍ فَأَصَّدَّقَ وَأَكُن مِّنَ الصَّالِحِينَ**
+> „Und gebt von dem aus, womit Wir euch versorgt haben, bevor der Tod zu einem von euch kommt und er dann sagt: ‚Mein Herr, würdest Du mich doch auf eine kurze Frist zurückstellen, so dass ich Almosen gebe und zu den Rechtschaffenen gehöre!‘“
+
+`QUELLE` Al-Munāfiqūn 63:10
+
+`FESTGELEGT` Der zuvor frei formulierte Satz („Sie bitten darum, zurückzukehren. Du bist noch hier.“) ist gestrichen. Der Film enthält damit **keinen** frei formulierten Satz mehr; die Aussage „Du hast die Frist noch“ ergibt sich allein aus dem Vers und dem Bild des Zimmers.
 
 ### Szene E.3 – Der dritte Fall
 
