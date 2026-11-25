@@ -130,6 +130,7 @@ Bitte Wortlaut und Grad jeder Quelle bestätigen.
 | Bukhari 216 · Muslim 292 | Die zwei Gräber | E.3 | |
 | Bukhari 44 · Muslim 193 | Herausgeholt, wer ein Körnchen Glauben hat | E.3 | |
 | Tirmidhi 3540 | „Solange du Mich anrufst…“ | E.3 | |
+| Muslim 966 | Lahd und hochkant gestellte Lehmziegel (Saʿd ibn Abī Waqqāṣ) | 3.0 | |
 
 ## D. Bewusst NICHT verwendet (schwach oder ohne Grundlage)
 

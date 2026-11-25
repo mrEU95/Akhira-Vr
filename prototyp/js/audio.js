@@ -161,12 +161,12 @@ export class Sound {
 
   // --- Einzelklänge ---
 
-  // Erde, die auf Stoff und Holz fällt
-  earth(x = 0, y = 2, z = 0, vol = 1) {
+  // Erde, die fällt; muffled = auf die Ziegel, von innen gehört (dumpfer)
+  earth(x = 0, y = 2, z = 0, vol = 1, muffled = false) {
     const c = this.ctx, t = this.now;
     const out = this._panner(x, y, z);
     const s = this._noiseSrc(false);
-    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 500 + Math.random() * 300;
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = muffled ? 220 + Math.random() * 120 : 500 + Math.random() * 300;
     const g = c.createGain();
     g.gain.setValueAtTime(0, t);
     g.gain.linearRampToValueAtTime(0.9 * vol, t + 0.02);
@@ -220,6 +220,61 @@ export class Sound {
         const vol = Math.pow(1 - k, 1.6);
         this.step(x, 2.6, z, vol, t);
       }
+    }
+  }
+
+  // Ein Lehmziegel wird aufgesetzt: dumpfer, trockener Aufsatz + leises Knirschen
+  place(x, y, z) {
+    const c = this.ctx, t = this.now;
+    const out = this._panner(x, y, z);
+    const o = c.createOscillator(); o.type = 'sine';
+    o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(60, t + 0.12);
+    const og = c.createGain();
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(0.7, t + 0.006);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+    o.connect(og).connect(out); o.start(t); o.stop(t + 0.25);
+    const s = this._noiseSrc(false);
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1400; bp.Q.value = 0.9;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.35, t + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+    s.connect(bp).connect(g).connect(out); s.start(t); s.stop(t + 0.25);
+  }
+
+  // Ziegel streift an der Grabwand entlang, während er herabgelassen wird
+  scrape(x, y, z, seconds = 1.6) {
+    const c = this.ctx, t = this.now;
+    const out = this._panner(x, y, z);
+    const s = this._noiseSrc(false);
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 1.4;
+    const am = c.createGain(); am.gain.value = 0.5;
+    const lfo = c.createOscillator(); lfo.frequency.value = 7 + Math.random() * 5;
+    const lg = c.createGain(); lg.gain.value = 0.5;
+    lfo.connect(lg).connect(am.gain);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.16, t + 0.3);
+    g.gain.linearRampToValueAtTime(0.1, t + seconds * 0.8);
+    g.gain.linearRampToValueAtTime(0, t + seconds);
+    s.connect(bp).connect(am).connect(g).connect(out);
+    s.start(t); s.stop(t + seconds + 0.1); lfo.start(t); lfo.stop(t + seconds + 0.1);
+  }
+
+  // Lehm wird in die Fugen gestrichen: weiches, feuchtes Streichen
+  smear(seconds = 3) {
+    const c = this.ctx;
+    for (let k = 0; k < 4; k++) {
+      const t = this.now + k * (seconds / 4);
+      const s = this._noiseSrc(false);
+      const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.18, t + 0.2);
+      g.gain.linearRampToValueAtTime(0, t + 0.6);
+      s.connect(lp).connect(g).connect(this.master);
+      s.start(t); s.stop(t + 0.7);
     }
   }
 

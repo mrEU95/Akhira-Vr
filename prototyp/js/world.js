@@ -5,57 +5,8 @@ import * as THREE from 'three';
 // – Menschen gesichtslos (G9)
 // – Was hinter den Toren ist, wird nicht gezeigt (G6/G7)
 
-export const DEFAULT_GRAVE = { hw: 0.55, front: -1.25, back: 0.65, h: 2.0, cover: 0 };
 
 // ---------- Texturen ----------
-
-function earthTexture() {
-  const c = document.createElement('canvas');
-  c.width = c.height = 512;
-  const g = c.getContext('2d');
-  g.fillStyle = '#4b3727';
-  g.fillRect(0, 0, 512, 512);
-  // weiche Flecken (Feuchtigkeit, Schichten) – nahtlos durch Wiederholung an den Rändern
-  for (let i = 0; i < 140; i++) {
-    const x = Math.random() * 512, y = Math.random() * 512, r = 20 + Math.random() * 70;
-    const dark = Math.random() < 0.5;
-    const col = dark ? '30,20,12' : '96,74,52';
-    for (const [ox, oy] of [[0, 0], [512, 0], [-512, 0], [0, 512], [0, -512]]) {
-      const grd = g.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, r);
-      grd.addColorStop(0, `rgba(${col},0.22)`);
-      grd.addColorStop(1, `rgba(${col},0)`);
-      g.fillStyle = grd;
-      g.fillRect(x + ox - r, y + oy - r, r * 2, r * 2);
-    }
-  }
-  // feine Körnung
-  for (let i = 0; i < 14000; i++) {
-    const v = Math.random();
-    g.fillStyle = `rgba(${(30 + v * 60) | 0},${(22 + v * 42) | 0},${(14 + v * 26) | 0},${(0.15 + Math.random() * 0.35).toFixed(2)})`;
-    g.fillRect(Math.random() * 512, Math.random() * 512, 1 + Math.random() * 1.5, 1 + Math.random() * 1.5);
-  }
-  // kleine Steine
-  for (let i = 0; i < 45; i++) {
-    const s = (70 + Math.random() * 30) | 0;
-    g.fillStyle = `rgba(${s + 10},${s},${s - 12},0.5)`;
-    g.beginPath();
-    g.ellipse(Math.random() * 512, Math.random() * 512, 1.5 + Math.random() * 4, 1 + Math.random() * 3, Math.random() * 3, 0, Math.PI * 2);
-    g.fill();
-  }
-  g.strokeStyle = 'rgba(25,16,9,0.5)';
-  for (let i = 0; i < 14; i++) {
-    g.lineWidth = 1 + Math.random() * 2;
-    g.beginPath();
-    let x = Math.random() * 512, y = Math.random() * 512;
-    g.moveTo(x, y);
-    for (let k = 0; k < 6; k++) { x += (Math.random() - 0.5) * 60; y += Math.random() * 40; g.lineTo(x, y); }
-    g.stroke();
-  }
-  const t = new THREE.CanvasTexture(c);
-  t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
 
 export function radialTexture(inner = 'rgba(255,255,255,1)', outer = 'rgba(255,255,255,0)') {
   const c = document.createElement('canvas');
@@ -149,127 +100,233 @@ export function makeFigure(material, height = 1.72) {
   return g;
 }
 
-// ---------- Das Grab ----------
+// ---------- Materialien (PBR-Texturen aus tools/make_textures.py) ----------
+
+const texLoader = new THREE.TextureLoader();
+const texCache = {};
+// Liefert eine eigene Kopie der Textur (eigenes repeat). Kopien, die vor dem Laden entstehen,
+// werden nach dem Laden aktualisiert – sonst blieben sie leer.
+function tex(name, srgb) {
+  let e = texCache[name];
+  if (!e) {
+    e = texCache[name] = { base: null, copies: [], loaded: false };
+    e.base = texLoader.load('textures/' + name + '.jpg', () => {
+      e.loaded = true;
+      for (const c of e.copies) c.needsUpdate = true;
+      e.copies = [];
+    });
+    e.base.wrapS = e.base.wrapT = THREE.RepeatWrapping;
+    e.base.anisotropy = 4;
+    if (srgb) e.base.colorSpace = THREE.SRGBColorSpace;
+  }
+  const c = e.base.clone();
+  if (!e.loaded) { c.version = 0; e.copies.push(c); } // erst nach dem Laden hochladen
+  return c;
+}
+
+// Eigenes Material je Fläche, damit die Körnung zur Flächengröße passt (repeat je Fläche)
+export function pbrMaterial(kind, opts = {}) {
+  const maps = {
+    map: tex(kind + '_color', true),
+    normalMap: tex(kind + '_normal', false),
+  };
+  if (kind !== 'grass') maps.roughnessMap = tex(kind + '_rough', false);
+  const m = new THREE.MeshStandardMaterial({
+    ...maps, roughness: 1, metalness: 0, side: THREE.DoubleSide,
+    normalScale: new THREE.Vector2(1.2, 1.2), ...opts,
+  });
+  m.userData.tile = kind === 'labin' ? 0.55 : 1.1; // Meter pro Kachel
+  return m;
+}
+function setRepeat(m, w, h) {
+  const t = m.userData.tile || 1;
+  for (const k of ['map', 'normalMap', 'roughnessMap']) if (m[k]) m[k].repeat.set(Math.max(0.05, w / t), Math.max(0.05, h / t));
+}
+
+// Standardmaße der Lahd (Nische) relativ zum Kopf; h/eye werden in fit() an die Kopfhöhe angepasst
+export const DEFAULT_GRAVE = { hw: 0.6, front: -0.62, back: 0.38, h: 1.65, eye: 1.15, cover: 1 };
+const COLS = 5, ROWS = 3; // Lehmziegel: 5 nebeneinander, 3 übereinander
+
+// ---------- Das Grab: die Lahd-Nische, vorne mit Lehmziegeln (Labin) verschlossen ----------
+// Muslim 966: „Macht mir eine Lahd und stellt Lehmziegel vor mich auf, wie es beim Gesandten Allahs ﷺ gemacht wurde.“
 
 export class Grave {
   constructor(scene) {
     this.group = new THREE.Group();
     scene.add(this.group);
-    this.tex = earthTexture();
     this.wallMats = [];
-    const mk = () => {
-      const m = new THREE.MeshStandardMaterial({
-        map: this.tex, roughness: 1, metalness: 0, side: THREE.DoubleSide, transparent: true, color: 0xffffff,
-      });
+    const mk = (kind) => {
+      const m = pbrMaterial(kind, { transparent: true });
       this.wallMats.push(m);
       const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), m);
+      mesh.receiveShadow = true; mesh.castShadow = true;
       this.group.add(mesh);
       return mesh;
     };
-    this.left = mk(); this.right = mk(); this.front = mk(); this.back = mk();
-    this.floor = mk(); this.cover = mk();
+    this.left = mk('soil'); this.right = mk('soil'); this.back = mk('soil');
+    this.floor = mk('soil'); this.cover = mk('soil');
+    this.front = mk('soil'); this.front.visible = false; // vorne stehen die Ziegel
+
+    // Lehmziegel – je Ziegel: placed 0 (noch nicht da) … 1 (steht), gap = Fuge in Metern
+    this.slabMat = pbrMaterial('labin', { transparent: true });
+    this.wallMats.push(this.slabMat);
+    this.slabs = [];
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+      const s = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), this.slabMat);
+      s.castShadow = true; s.receiveShadow = true;
+      s.userData = { placed: 1, row: r, col: c, tilt: (Math.random() - 0.5) * 0.05, dz: (Math.random() - 0.5) * 0.012 };
+      this.group.add(s);
+      this.slabs.push(s);
+    }
+    this.gap = 0.012;
+    this.base = { ...DEFAULT_GRAVE };
     this.dims = { ...DEFAULT_GRAVE };
-    this.attachments = []; // Objekte, die an Wänden haften: {obj, wall, u, v}
+    this.attachments = [];
     this.apply();
+  }
+
+  // An den Kopf des Zuschauers anpassen: Kopf mittig, Decke eine Handbreit über dem Kopf
+  fit(headPos) {
+    this.group.position.set(headPos.x, 0, headPos.z);
+    const eye = Math.max(0.9, Math.min(headPos.y, 1.9));
+    this.base = { ...DEFAULT_GRAVE, eye, h: eye + 0.5 };
+    this.reset();
   }
 
   reset() {
-    Object.assign(this.dims, DEFAULT_GRAVE);
+    Object.assign(this.dims, this.base);
+    this.gap = 0.0;
+    this.slabs.forEach((s) => { s.userData.placed = 1; });
     this.setOpacity(1);
-    this.floor.material.color.set(0xffffff);
     this.apply();
   }
 
-  // Wände (und optional den Boden) ein-/ausblenden
   setOpacity(o, includeFloor = true) {
     for (const m of this.wallMats) {
       if (!includeFloor && m === this.floor.material) continue;
       m.opacity = o;
+      m.transparent = o < 0.999;
       m.depthWrite = o > 0.98;
     }
-    for (const w of [this.left, this.right, this.front, this.back, this.cover]) w.visible = o > 0.001;
-    if (includeFloor) this.group.visible = o > 0.001;
-    else this.group.visible = true;
+    for (const w of [this.left, this.right, this.back, this.cover, ...this.slabs]) w.visible = o > 0.001;
+    this.group.visible = includeFloor ? o > 0.001 : true;
   }
 
   apply() {
-    const { hw, front, back, h, cover } = this.dims;
+    const { hw, front, back, h } = this.dims;
     const len = back - front, cz = (front + back) / 2;
-    const rep = (m, a, b) => { /* gleichbleibende Körnung */ m.material.map.repeat.set(1, 1); m.scale.set(a, b, 1); };
-    this.left.rotation.set(0, Math.PI / 2, 0); this.left.position.set(-hw, h / 2, cz); rep(this.left, len, h);
-    this.right.rotation.set(0, -Math.PI / 2, 0); this.right.position.set(hw, h / 2, cz); rep(this.right, len, h);
-    this.front.rotation.set(0, 0, 0); this.front.position.set(0, h / 2, front); rep(this.front, 2 * hw, h);
-    this.back.rotation.set(0, Math.PI, 0); this.back.position.set(0, h / 2, back); rep(this.back, 2 * hw, h);
-    this.floor.rotation.set(-Math.PI / 2, 0, 0); this.floor.position.set(0, 0, cz); rep(this.floor, 2 * hw, len);
-    const covered = Math.max(0.0001, len * cover);
-    this.cover.rotation.set(Math.PI / 2, 0, 0);
-    this.cover.position.set(0, h, back - covered / 2);
-    this.cover.scale.set(2 * hw, covered, 1);
-    this.cover.visible = cover > 0.001;
-    for (const a of this.attachments) a.update(this.dims);
-  }
+    const put = (m, w, hh) => { m.scale.set(w, hh, 1); setRepeat(m.material, w, hh); };
+    this.left.rotation.set(0, Math.PI / 2, 0); this.left.position.set(-hw, h / 2, cz); put(this.left, len, h);
+    this.right.rotation.set(0, -Math.PI / 2, 0); this.right.position.set(hw, h / 2, cz); put(this.right, len, h);
+    this.back.rotation.set(0, Math.PI, 0); this.back.position.set(0, h / 2, back); put(this.back, 2 * hw, h);
+    this.floor.rotation.set(-Math.PI / 2, 0, 0); this.floor.position.set(0, 0, cz); put(this.floor, 2 * hw, len);
+    this.cover.rotation.set(Math.PI / 2, 0, 0); this.cover.position.set(0, h, cz); put(this.cover, 2 * hw, len);
+    this.cover.visible = this.left.visible;
 
-  // Grab so verschieben, dass der Kopf des Zuschauers in der Mitte der Breite liegt
-  centerOn(worldPos) {
-    this.group.position.set(worldPos.x, 0, worldPos.z);
+    // Ziegelwand: hochkant gestellte Lehmziegel vor der Öffnung
+    const sw = (2 * hw) / COLS, rh = (h + 0.02) / ROWS;
+    const th = Math.min(0.11, sw * 0.45);
+    setRepeat(this.slabMat, sw, rh);
+    const g = this.gap;
+    this.slabs.forEach((s) => {
+      const { row, col, tilt, dz } = s.userData;
+      const p = s.userData.placed;
+      s.visible = p > 0.001 && this.left.visible;
+      const fx = -hw + sw * (col + 0.5), fy = rh * (row + 0.5), fz = front - th / 2 + dz;
+      // Anfangslage: über dem Graben, gekippt – wird herabgereicht und eingesetzt
+      const k = 1 - p;
+      s.position.set(fx + k * 0.15, fy + k * 1.5, fz - k * 0.4);
+      s.rotation.set(-k * 0.5 + tilt * 0.4, k * 0.3, tilt * (0.3 + g * 30));
+      s.scale.set(sw - 0.006 - g, rh - 0.006 - g * 0.5, th);
+    });
+    for (const a of this.attachments) a.update(this.dims);
   }
 }
 
-// ---------- Erdoberfläche mit Graböffnung (für die Beerdigung) ----------
+// ---------- Der Graben vor der Nische, die Oberfläche und die Trauergäste (nur bei der Bestattung) ----------
 
-export class Surface {
-  constructor(scene, earthTex) {
+export class Lahd {
+  constructor(grave) {
+    this.grave = grave;
     this.group = new THREE.Group();
-    scene.add(this.group);
-    const mat = new THREE.MeshStandardMaterial({ map: earthTex, roughness: 1, color: 0xb9a58c });
-    const { hw, front, back, h } = DEFAULT_GRAVE;
-    const R = 40;
-    const strip = (x0, x1, z0, z1) => {
-      const m = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), mat);
-      m.rotation.x = -Math.PI / 2;
-      m.position.set((x0 + x1) / 2, h, (z0 + z1) / 2);
-      this.group.add(m);
-    };
-    strip(-R, -hw, -R, R);
-    strip(hw, R, -R, R);
-    strip(-hw, hw, -R, front);
-    strip(-hw, hw, back, R);
-
-    // Trauergäste am Rand: gesichtslos, gegen den Himmel nur als Schatten
-    this.mourners = [];
-    const mm = new THREE.MeshBasicMaterial({ color: 0x1b1a18 });
-    const spots = [[-1.05, -0.9], [-1.15, 0.05], [1.0, -0.55], [1.1, 0.35], [0.1, -1.85], [-0.45, 1.35], [0.6, 1.4]];
-    for (const [x, z] of spots) {
-      const f = makeFigure(mm, 1.6 + Math.random() * 0.25);
-      f.position.set(x, h, z);
-      f.lookAt(0, h, -0.3);
-      this.group.add(f);
-      this.mourners.push(f);
-    }
-    this.mournerMat = mm;
+    grave.group.add(this.group);
+    this.group.visible = false;
+    this.soil = [];
   }
+
+  // Baut die Umgebung passend zu den aktuellen Maßen der Nische
+  build() {
+    this.group.clear();
+    const d = this.grave.dims;
+    const TW = 0.85, X = 1.35, D = 2.15;   // Grabenbreite, halbe Länge, Tiefe
+    const f = d.front;
+    this.depth = D;
+    const plane = (kind, w, h, pos, rotY, rotX = 0) => {
+      const m = pbrMaterial(kind);
+      setRepeat(m, w, h);
+      const p = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m);
+      p.position.copy(pos); p.rotation.set(rotX, rotY, 0, 'YXZ');
+      p.receiveShadow = true; p.castShadow = true;
+      this.group.add(p);
+      return p;
+    };
+    const V = (x, y, z) => new THREE.Vector3(x, y, z);
+    // Graben: Boden, gegenüberliegende Wand, Stirnwände
+    plane('soil', 2 * X, TW, V(0, 0.002, f - TW / 2), 0, -Math.PI / 2);
+    plane('soil', 2 * X, D, V(0, D / 2, f - TW), 0);
+    plane('soil', TW, D, V(-X, D / 2, f - TW / 2), Math.PI / 2);
+    plane('soil', TW, D, V(X, D / 2, f - TW / 2), -Math.PI / 2);
+    // Wand über und neben der Nischenöffnung (zum Graben hin)
+    plane('soil', 2 * d.hw, D - d.h, V(0, d.h + (D - d.h) / 2, f), Math.PI);
+    plane('soil', X - d.hw, D, V(-(X + d.hw) / 2, D / 2, f), Math.PI);
+    plane('soil', X - d.hw, D, V((X + d.hw) / 2, D / 2, f), Math.PI);
+    // Oberfläche mit Grabenöffnung
+    const R = 30;
+    const strip = (x0, x1, z0, z1) => plane('grass', x1 - x0, z1 - z0, V((x0 + x1) / 2, D, (z0 + z1) / 2), 0, -Math.PI / 2);
+    strip(-R, -X, -R, R); strip(X, R, -R, R);
+    strip(-X, X, -R, f - TW); strip(-X, X, f, R);
+    // Aufgeworfene Erde am Rand (Aushub)
+    const pileMat = pbrMaterial('soil');
+    setRepeat(pileMat, 2, 1);
+    for (const [x, z, sx] of [[0, f - TW - 0.9, 2.6], [-X - 0.9, f - 0.4, 1.0]]) {
+      const pile = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), pileMat);
+      pile.scale.set(sx, 0.45, 0.6);
+      pile.position.set(x, D, z);
+      pile.castShadow = true; pile.receiveShadow = true;
+      this.group.add(pile);
+    }
+    // Trauergäste: gesichtslos (G12), dunkle Gewänder
+    const robe = new THREE.MeshStandardMaterial({ color: 0x2a2724, roughness: 1 });
+    const white = new THREE.MeshStandardMaterial({ color: 0xcfc9bd, roughness: 1 });
+    const spots = [[-0.85, f - TW - 0.3], [-0.1, f - TW - 0.35], [0.7, f - TW - 0.3], [-X - 0.35, f - 0.35], [X + 0.35, f - 0.5], [1.0, f - TW - 1.1], [-0.6, f - TW - 1.2]];
+    spots.forEach(([x, z], i) => {
+      const fig = makeFigure(i % 3 === 1 ? white : robe, 1.62 + Math.random() * 0.22);
+      fig.position.set(x, D, z);
+      fig.lookAt(this.group.position.x + 0, D, f - TW / 2 + 0.2);
+      fig.traverse((o) => { o.castShadow = true; });
+      this.group.add(fig);
+    });
+  }
+
   set visible(v) { this.group.visible = v; }
 }
 
-// ---------- Fallende Erdklumpen ----------
+// ---------- Staub, der durch die Fugen rieselt / Erdkrumen ----------
 
 export class Clods {
   constructor(parent) {
     this.parent = parent;
     this.items = [];
-    this.geo = new THREE.DodecahedronGeometry(0.045, 0);
-    this.mat = new THREE.MeshStandardMaterial({ color: 0x5a4330, roughness: 1 });
+    this.geo = new THREE.DodecahedronGeometry(1, 0);
+    this.mat = new THREE.MeshStandardMaterial({ color: 0x6b5440, roughness: 1 });
   }
-  spawn(n, dims) {
+  // Feine Krumen an der Oberkante der Ziegel (innen in der Nische)
+  dust(n, dims) {
     for (let i = 0; i < n; i++) {
       const m = new THREE.Mesh(this.geo, this.mat);
-      const s = 0.6 + Math.random() * 1.4;
-      m.scale.setScalar(s);
-      // fällt in den noch offenen Teil
-      const openFront = dims.front, openBack = dims.back - (dims.back - dims.front) * dims.cover;
-      m.position.set((Math.random() - 0.5) * dims.hw * 1.6, dims.h + 0.2 + Math.random() * 0.3,
-        openFront + Math.random() * Math.max(0.1, openBack - openFront));
-      m.userData.v = new THREE.Vector3((Math.random() - 0.5) * 0.4, -0.5 - Math.random(), (Math.random() - 0.5) * 0.4);
+      m.scale.setScalar(0.003 + Math.random() * 0.006);
+      m.position.set((Math.random() - 0.5) * dims.hw * 1.8, dims.h - 0.02, dims.front + 0.02 + Math.random() * 0.05);
+      m.userData.v = new THREE.Vector3((Math.random() - 0.5) * 0.05, -Math.random() * 0.3, 0.05 + Math.random() * 0.1);
       m.userData.spin = new THREE.Vector3(Math.random() * 6, Math.random() * 6, 0);
       this.parent.add(m);
       this.items.push(m);
@@ -278,14 +335,11 @@ export class Clods {
   update(dt) {
     for (let i = this.items.length - 1; i >= 0; i--) {
       const m = this.items[i];
-      m.userData.v.y -= 9.8 * dt;
+      m.userData.v.y -= 6 * dt;
       m.position.addScaledVector(m.userData.v, dt);
       m.rotation.x += m.userData.spin.x * dt;
       m.rotation.y += m.userData.spin.y * dt;
-      if (m.position.y < 0.55) {
-        this.parent.remove(m);
-        this.items.splice(i, 1);
-      }
+      if (m.position.y < 0.01) { this.parent.remove(m); this.items.splice(i, 1); }
     }
   }
   clear() { for (const m of this.items) this.parent.remove(m); this.items = []; }
@@ -303,15 +357,19 @@ export class LightPresences {
     for (const x of [-0.27, 0.27]) {
       const sm = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
       const s = new THREE.Sprite(sm);
-      s.scale.set(0.9, 1.6, 1);
-      s.position.set(x, 1.25, -1.0);
+      s.scale.set(0.45, 0.8, 1);
+      s.position.set(x * 0.8, 1.15, -0.5);
       this.group.add(s);
       this.sprites.push(s);
-      const l = new THREE.PointLight(0xfff2dc, 0, 4, 2);
-      l.position.set(x, 1.25, -0.95);
+      const l = new THREE.PointLight(0xfff2dc, 0, 3, 2);
+      l.position.set(x * 0.8, 1.15, -0.45);
       this.group.add(l);
       this.lights.push(l);
     }
+  }
+  place(dims) {
+    this.sprites.forEach((s) => { s.position.y = dims.eye; s.position.z = dims.front + 0.14; });
+    this.lights.forEach((l) => { l.position.y = dims.eye; l.position.z = dims.front + 0.18; });
   }
   set level(v) {
     this.sprites.forEach((s) => { s.material.opacity = 0.55 * v; });
@@ -330,12 +388,13 @@ export class DarkPresences {
     this.mats = [];
     for (const x of [-0.25, 0.25]) {
       const m = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false, color: 0x000000 });
-      const p = new THREE.Mesh(new THREE.PlaneGeometry(0.75, 1.5), m);
-      p.position.set(x, 1.2, -1.05);
+      const p = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.85), m);
+      p.position.set(x * 0.8, 1.15, -0.55);
       this.group.add(p);
       this.mats.push(m);
     }
   }
+  place(dims) { this.group.children.forEach((p) => { p.position.y = dims.eye; p.position.z = dims.front + 0.06; }); }
   set level(v) { this.mats.forEach((m) => { m.opacity = v; }); this.group.visible = v > 0.001; }
 }
 
@@ -394,16 +453,17 @@ export class EmberOpening {
           #include <colorspace_fragment>
         }`,
     });
-    this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.7), mat);
+    this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.5), mat);
     this.light = new THREE.PointLight(0xff5a1a, 0, 3.5, 2);
     grave.group.add(this.mesh, this.light);
     this.mesh.visible = false;
     // haftet an der rechten Wand
     grave.attachments.push({
       update: (d) => {
-        this.mesh.position.set(d.hw - 0.015, 0.9, Math.min(-0.2, d.front + 0.6));
+        const z = (d.front + d.back) / 2 - 0.05, y = (d.eye || 1.15) - 0.25;
+        this.mesh.position.set(d.hw - 0.015, y, z);
         this.mesh.rotation.set(0, -Math.PI / 2, 0);
-        this.light.position.set(d.hw - 0.18, 0.9, Math.min(-0.2, d.front + 0.6));
+        this.light.position.set(d.hw - 0.15, y, z);
       },
     });
     grave.apply();
@@ -457,12 +517,14 @@ export class Cemetery {
     scene.add(this.group);
     this.group.visible = false;
 
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200),
-      new THREE.MeshStandardMaterial({ color: 0x6d6a4c, roughness: 1 }));
+    const gm = pbrMaterial('grass', { side: THREE.FrontSide });
+    setRepeat(gm, 200, 200);
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), gm);
     ground.rotation.x = -Math.PI / 2;
     this.group.add(ground);
 
-    const moundMat = new THREE.MeshStandardMaterial({ color: 0x6b5641, roughness: 1 });
+    const moundMat = pbrMaterial('soil', { side: THREE.FrontSide });
+    setRepeat(moundMat, 1, 1);
     const stoneMat = new THREE.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9 });
     for (let row = -4; row <= 4; row++) {
       for (let col = -5; col <= 5; col++) {

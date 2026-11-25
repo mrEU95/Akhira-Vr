@@ -350,16 +350,22 @@ HAD (Zitat, hart):
 
 ### Szene 3.0 – Die Beerdigung (gemeinsam)
 
-`BILD` Die Sicht aus dem Grab nach oben. Eine rechteckige Öffnung, darüber Himmel (Tageslicht, leicht bewölkt). Am Rand: Silhouetten von Menschen, **unscharf, ohne Gesichter**, von unten gesehen. Erde fällt in langsamen Schaufeln herein. Mit jeder Schaufel wird die Öffnung kleiner.
+**Bestattung nach der Sunnah:** Der Verstorbene liegt in einer **Lahd**, einer Seitennische unten im Grab. Vor die Öffnung werden **ungebrannte Lehmziegel (Labin)** hochkant gestellt; erst danach wird Erde aufgeschüttet. Die Erde fällt also nie auf den Verstorbenen selbst.
 
-`TON` Erde auf Stoff. Gedämpftes, leises Murmeln von Bittgebeten (unverständlich). Wind.
+> Saʿd ibn Abī Waqqāṣ sagte in seiner Todeskrankheit: **„الْحَدُوا لِي لَحْدًا، وَانْصِبُوا عَلَيَّ اللَّبِنَ نَصْبًا، كَمَا صُنِعَ بِرَسُولِ اللَّهِ ﷺ“** – „Macht mir eine Lahd und stellt Lehmziegel vor mich auf, wie es beim Gesandten Allahs ﷺ gemacht wurde.“
+
+`QUELLE` Muslim 966
+
+`BILD` Die Sicht aus der Nische. Vor dem Zuschauer die offene Seite: dahinter der Graben, die gegenüberliegende Erdwand im Sonnenlicht, oben ein Streifen Himmel. Am Grabrand stehen Trauernde – **gesichtslos**, nur Umrisse in dunklen und hellen Gewändern (G12). Dann werden die Lehmziegel gesetzt: einer nach dem anderen, Reihe für Reihe, von unten nach oben. Mit jedem Ziegel wird es dunkler. Zuletzt werden die Fugen mit Lehm verstrichen – die letzten Lichtstreifen verschwinden.
+
+`TON` Wind über dem Grab. Das Schaben jedes Ziegels an der Grabwand, das dumpfe Aufsetzen. Gedämpftes, leises Murmeln von Bittgebeten (unverständlich). Danach: Erde, die **auf die Ziegel** fällt – dumpf, von oben. Feiner Staub rieselt innen von der Oberkante der Ziegel.
 
 `TEXT` HAD:
 > Der Gesandte Allahs ﷺ sagte: „Dem Toten folgen drei: seine Familie, sein Besitz und seine Taten. Zwei kehren zurück, und einer bleibt bei ihm. Seine Familie und sein Besitz kehren zurück, und seine Taten bleiben.“
 
 `QUELLE` Bukhari 6514 · Muslim 2960
 
-`BILD` Die letzte Lücke schließt sich. **Völlige Dunkelheit.**
+`BILD` Der letzte Ziegel steht, die Fugen sind verschlossen. **Völlige Dunkelheit.**
 
 `TON` In der Dunkelheit: **Schritte, die sich entfernen.** Sandalen auf Erde, viele, langsam leiser werdend. Räumlich über dem Kopf.
 

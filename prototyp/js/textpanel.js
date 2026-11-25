@@ -124,6 +124,12 @@ export class TextPanel {
 
   hide() { this.targetOpacity = 0; }
 
+  // Abstand zur Tafel; die Größe wird mitskaliert, damit sie gleich groß erscheint
+  setDistance(d) {
+    this.distance = d;
+    this.mesh.scale.setScalar(d / 0.85);
+  }
+
   update(camera, dt) {
     // Opazität weich
     const k = Math.min(1, dt * 4);

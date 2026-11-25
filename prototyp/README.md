@@ -7,7 +7,7 @@ Gebaut mit three.js (lokal in `lib/`) und WebXR. Alle Klänge werden zur Laufzei
 
 | Abschnitt | Szenen aus dem Drehbuch | Was passiert |
 |---|---|---|
-| Beerdigung | 3.0 | Blick aus dem Grab nach oben, gesichtslose Trauergäste, Erde fällt, Dunkelheit, die Schritte entfernen sich, Stille |
+| Beerdigung | 3.0 | Blick aus der Lahd-Nische in den Graben, gesichtslose Trauernde am Rand, Lehmziegel werden Reihe für Reihe gesetzt (Muslim 966), Erde fällt dumpf auf die Ziegel, Dunkelheit, die Schritte entfernen sich, Stille |
 | Weg A | 3A – 3A.3 | Aufsetzen, zwei Präsenzen als Licht ohne Quelle, Befragung, das Grab weitet sich bis zum Horizont, Tor aus Licht, der Gefährte (gute Taten) |
 | Übergang | – | Grau, Atemzug, „Und der ungläubige Diener …“ |
 | Weg B | 3B – 3B.4 | Zwei Flächen tieferer Dunkelheit, „Hāh hāh, lā adrī“, Öffnung zur Glut, das Grab wird eng (überspringbar), der Gefährte (schlechte Taten), an der Oberfläche fliegen die Vögel auf, aber der Mensch hört nichts |
@@ -88,5 +88,6 @@ Technik: three.js 0.180 und Spark 2.4.0 (`lib/three-0.180`, `lib/spark-2.4.0`, b
 | `js/texte.js` | Alle Texte (Arabisch, Deutsch, Quelle). Hier werden Korrekturen des Gelehrten eingetragen. |
 | `js/audio.js` | Prozeduraler Raumklang (Wind, Erde, Schritte, Glut …) |
 | `js/textpanel.js` | Schwebende Texttafeln in VR |
+| `textures/` | Erde, Lehmziegel, Gras als PBR-Texturen (Farbe, Relief, Rauheit), erzeugt mit `tools/make_textures.py` |
 | `lib/` | three.js 0.160.0 (MIT-Lizenz) |
 | `fonts/` | Noto Naskh Arabic (SIL Open Font License) |

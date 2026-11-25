@@ -3,8 +3,8 @@ import { Sound } from './audio.js';
 import { TextPanel } from './textpanel.js';
 import { TX } from './texte.js';
 import {
-  Sky, Grave, Surface, Clods, LightPresences, DarkPresences, LightGate, EmberOpening,
-  Companion, Cemetery, DEFAULT_GRAVE,
+  Sky, Grave, Lahd, Clods, LightPresences, DarkPresences, LightGate, EmberOpening,
+  Companion, Cemetery,
 } from './world.js';
 
 // ======================================================================
@@ -17,7 +17,11 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.xr.enabled = true;
 renderer.xr.setReferenceSpaceType('local-floor');
-renderer.xr.setFoveation(1);
+// Schärfer in der Quest: höhere Auflösung, weniger Unschärfe am Rand
+renderer.xr.setFramebufferScaleFactor(1.3);
+renderer.xr.setFoveation(0.35);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
@@ -36,12 +40,19 @@ const residual = new THREE.PointLight(0x9aa6b4, 0, 2.6, 2); // Restschimmer an d
 camera.add(residual);
 const sun = new THREE.DirectionalLight(0xfff4e2, 0);
 sun.position.set(-20, 30, 10);
-scene.add(sun);
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.bias = -0.0006;
+sun.shadow.normalBias = 0.02;
+Object.assign(sun.shadow.camera, { left: -3.5, right: 3.5, top: 3.5, bottom: -3.5, near: 1, far: 30 });
+scene.add(sun, sun.target);
+// Licht, das durch die Öffnung der Nische fällt (vom hellen Graben zurückgeworfen)
+const bounce = new THREE.PointLight(0xe9e0d0, 0, 2.2, 2);
+scene.add(bounce);
 
 // Welt
 const sky = new Sky(scene);
 const grave = new Grave(scene);
-const surface = new Surface(scene, grave.tex);
+const lahd = new Lahd(grave);
 const clods = new Clods(grave.group);
 const lightPresences = new LightPresences(grave.group);
 const darkPresences = new DarkPresences(grave.group);
@@ -143,7 +154,10 @@ function resetWorld() {
   companionA.level = 0;
   companionB.level = 0;
   cemetery.group.visible = false;
-  surface.visible = false;
+  lahd.visible = false;
+  sun.castShadow = false;
+  bounce.intensity = 0;
+  panel.setDistance(0.85);
   sky.opacity = 0;
   scene.fog = null;
   hemi.intensity = 0;
@@ -167,41 +181,67 @@ async function sceneIntro() {
 }
 
 // ---------- 3.0 Die Beerdigung ----------
+// Nach der Sunnah: Lahd (Seitennische), davor hochkant gestellte Lehmziegel, dann Erde (Muslim 966).
 async function sceneBurial() {
   resetWorld();
-  grave.centerOn(head());
-  surface.group.position.copy(grave.group.position);
-  surface.visible = true;
-  sky.set('#a7b6c6', '#e7e4dc');
-  sky.opacity = 1;
-  setDay(1);
-  sound.setLevel('wind', 0.35, 3);
-  await fadeTo(0x000000, 0, 4);
-  await wait(3);
+  grave.fit(head());
+  grave.slabs.forEach((s) => { s.userData.placed = 0; });
+  grave.gap = 0.014;
+  grave.apply();
+  lahd.build();
+  lahd.visible = true;
+  panel.setDistance(0.5);
 
-  // Erde fällt – parallel dazu der Text über die drei, die folgen
-  const shovels = 14;
-  const textRun = (async () => { await wait(4); await say(TX.dreiFolgen, 6); })();
-  for (let i = 0; i < shovels; i++) {
-    const d = grave.dims;
-    clods.spawn(7, d);
-    const gp = grave.group.position;
-    sound.earth(gp.x + (Math.random() - 0.5) * 0.6, d.h, gp.z + lerp(d.back, d.front, d.cover), 0.9);
-    const c0 = d.cover, c1 = (i + 1) / shovels;
-    await tween(0.9, (t) => {
-      d.cover = lerp(c0, c1, t);
-      grave.apply();
-      setDay(Math.pow(1 - d.cover, 0.8));
-      residual.intensity = 0.25 * d.cover;
-      sound.setLevel('wind', 0.35 * (1 - d.cover), 0.2);
-    });
-    await wait(1.4 + Math.random() * 0.8);
+  // Tageslicht im Graben, Sonne mit Schatten
+  const gp = grave.group.position, d = grave.dims;
+  sky.set('#9fb2c6', '#e9e6de');
+  sky.opacity = 1;
+  hemi.color.set(0xe4e9f0); hemi.groundColor.set(0x5a4634);
+  hemi.intensity = 0.9;
+  // Sonne steht hoch und etwas hinter dem Zuschauer: Sie fällt in den Graben und auf die gegenüberliegende Wand
+  sun.position.set(gp.x + 2.5, 11, gp.z + 2.5);
+  sun.target.position.set(gp.x, 0, gp.z + d.front - 0.6);
+  sun.intensity = 3.0;
+  sun.castShadow = true;
+  bounce.position.set(gp.x, d.h * 0.5, gp.z + d.front - 0.3);
+  bounce.intensity = 3.0;
+  sound.setLevel('wind', 0.3, 3);
+  await fadeTo(0x000000, 0, 4);
+  await wait(4);
+
+  // Die Ziegel werden einer nach dem anderen gesetzt – Reihe für Reihe, von unten nach oben
+  const textRun = (async () => { await wait(3); await say(TX.dreiFolgen, 6); })();
+  const n = grave.slabs.length;
+  for (let k = 0; k < n; k++) {
+    const slab = grave.slabs[k];
+    const sx = gp.x + (slab.userData.col - 2) * 0.24;
+    sound.scrape(sx, d.h + 0.6, gp.z + d.front - 0.3, 0.9);
+    await tween(0.95, (t) => { slab.userData.placed = t; grave.apply(); });
+    sound.place(sx, (slab.userData.row + 0.5) * d.h / 3, gp.z + d.front);
+    const open = 1 - (k + 1) / n;
+    bounce.intensity = 3.0 * Math.pow(open, 1.3) + 0.05;
+    hemi.intensity = 0.15 + 0.75 * open;
+    await wait(0.5 + Math.random() * 0.5);
   }
-  await textRun;
-  surface.visible = false;
+  // Fugen werden mit Lehm verschlossen – die letzten Lichtstreifen verschwinden
+  sound.smear(3);
+  await tween(3, (t) => { grave.gap = lerp(0.014, 0, t); grave.apply(); bounce.intensity = lerp(0.05, 0, t); hemi.intensity = lerp(0.15, 0, t); });
+  sun.castShadow = false;
+  sun.intensity = 0;
   sky.opacity = 0;
-  sound.setLevel('wind', 0, 1);
-  sound.thud(0.5);
+  lahd.visible = false;
+  residual.color.set(0x9aa6b4);
+  residual.intensity = 0.12;
+  await textRun;
+
+  // Erde fällt auf die Ziegel – dumpf, von oben; feiner Staub rieselt durch
+  sound.setLevel('wind', 0, 2);
+  for (let i = 0; i < 12; i++) {
+    sound.earth(gp.x + (Math.random() - 0.5) * 0.8, d.h + 0.4, gp.z + d.front - 0.3, 0.75, true);
+    clods.dust(6 + Math.floor(Math.random() * 8), d);
+    await wait(1.3 + Math.random() * 1.1);
+  }
+  sound.thud(0.35);
 
   // Dunkelheit – die Schritte gehen fort
   await wait(2.5);
@@ -218,8 +258,9 @@ async function sceneBurial() {
 // ---------- 3A Der gläubige Diener ----------
 async function scenePathA() {
   resetWorld();
-  grave.centerOn(head());
-  grave.dims.cover = 1; grave.apply();
+  grave.fit(head());
+  lightPresences.place(grave.dims);
+  panel.setDistance(0.5);
   residual.color.set(0x9aa6b4);
   residual.intensity = 0.25;
   await fadeTo(0x000000, 1, 0.01);
@@ -229,7 +270,7 @@ async function scenePathA() {
 
   await say(TX.rueckgabeA);
   // Der Diener wird aufgesetzt
-  await tween(5, (t) => { rig.position.y = lerp(0, 0.25, t); });
+  await tween(5, (t) => { rig.position.y = lerp(0, 0.15, t); });
   // Zwei Präsenzen: Licht ohne Quelle
   await tween(5, (t) => { lightPresences.level = t; });
   await wait(1.5);
@@ -248,7 +289,7 @@ async function scenePathA() {
   scene.fog = new THREE.FogExp2(0xf4e8cf, 0.0);
   sound.setLevel('garden', 0.45, 18);
   sound.drip();
-  const textRun = (async () => { await wait(6); await say(TX.weiteA, 3); })();
+  const textRun = (async () => { await wait(6); panel.setDistance(0.85); await say(TX.weiteA, 3); })();
   await tween(22, (t) => {
     const k = Math.pow(t, 1.6);
     d.hw = lerp(s0.hw, 70, k);
@@ -311,8 +352,9 @@ async function sceneTransition() {
 // ---------- 3B Der ungläubige Diener ----------
 async function scenePathB() {
   resetWorld();
-  grave.centerOn(head());
-  grave.dims.cover = 1; grave.apply();
+  grave.fit(head());
+  darkPresences.place(grave.dims);
+  panel.setDistance(0.5);
   residual.color.set(0x7d8a9a);
   residual.intensity = 0.9;
   await fadeTo(0x000000, 0, 3);
@@ -320,7 +362,7 @@ async function scenePathB() {
 
   await say(TX.rueckgabeB);
   sound.setLevel('sub', 0.32, 6);
-  await tween(5, (t) => { rig.position.y = lerp(0, 0.25, t); });
+  await tween(5, (t) => { rig.position.y = lerp(0, 0.15, t); });
   await tween(5, (t) => { darkPresences.level = t; residual.intensity = lerp(0.9, 1.3, t); });
   await wait(1.5);
 
@@ -344,15 +386,15 @@ async function scenePathB() {
     const hp = head();
     const gp = grave.group.position;
     const localZ = hp.z - gp.z;
-    const targetH = Math.max(hp.y + 0.38, 1.25);
+    const targetH = Math.max(hp.y + 0.22, 1.1);
     sound.grind(6);
     let skipped = false;
     await tween(6, (t) => {
       if (holdSkip) skipped = true;
       if (skipped) return;
-      d.hw = lerp(s0.hw, 0.4, t);
-      d.front = lerp(s0.front, localZ - 0.45, t);
-      d.back = lerp(s0.back, localZ + 0.4, t);
+      d.hw = lerp(s0.hw, 0.3, t);
+      d.front = lerp(s0.front, localZ - 0.3, t);
+      d.back = lerp(s0.back, localZ + 0.24, t);
       d.h = lerp(s0.h, targetH, t);
       grave.apply();
     });
@@ -360,7 +402,8 @@ async function scenePathB() {
   fadeMat.color.set(0x000000); fadeMat.opacity = 1;
   sound.thud(1);
   sound.setLevel('heat', 0.15, 0.5);
-  grave.reset(); grave.dims.cover = 1; grave.apply();
+  grave.reset();
+  grave.dims.front = -1.25; grave.apply(); // etwas Raum für den Gefährten
   darkPresences.level = 0;
   await wait(3);
 
@@ -368,6 +411,7 @@ async function scenePathB() {
   const h = head();
   companionB.group.position.set(h.x, 0, h.z - 1.05);
   companionB.group.lookAt(h.x, 0, h.z);
+  companionB.group.scale.setScalar(Math.min(1, (grave.dims.h - 0.08) / 1.78)); // passt in die Nische
   sound.setLevel('heat', 0.3, 3);
   await fadeTo(0x000000, 0, 2.5);
   const textRun = say(TX.gefaehrteB[0], 1);
@@ -385,6 +429,7 @@ async function scenePathB() {
   await wait(1.5);
   grave.setOpacity(0);
   rig.position.set(0, 0, 0);
+  panel.setDistance(0.85);
   cemetery.reset();
   cemetery.group.visible = true;
   cemetery.group.position.set(head().x, 0, head().z + 3);
@@ -393,6 +438,8 @@ async function scenePathB() {
   scene.fog = new THREE.Fog(0xd9d8d2, 18, 90);
   hemi.color.set(0xdfe6ee); hemi.groundColor.set(0x4a4232);
   hemi.intensity = 1.3;
+  sun.position.set(head().x - 20, 30, head().z + 10);
+  sun.target.position.set(head().x, 0, head().z);
   sun.intensity = 1.6;
   residual.intensity = 0;
   sound.setLevel('wind', 0.12, 3);
