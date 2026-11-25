@@ -143,7 +143,22 @@ Bitte bestätigen, dass diese Inhalte zu Recht ausgeschlossen sind:
 | Die Seele schaut beim Waschen und Tragen ihres Körpers zu und spricht | Schwach / umstritten – nicht dargestellt |
 | Detaillierte Beschreibung der Höllenstrafen | Bewusst ausgelassen (Grundsatz G7), nicht weil unauthentisch |
 
-## E. Abschluss
+## E. Produktion mit echten Menschen und echten Orten
+
+Geplant ist eine Mischform: Szenen aus dem diesseitigen Leben werden mit echten Darstellern an echten Orten in 3D-360°/VR180 gefilmt, Gesichter bleiben durch Kameraposition und Gegenlicht verborgen. Szenen aus dem Verborgenen (Barzakh, Auferstehung) bleiben fotorealistisch berechnet, Menschen dort nur als Lichtgestalten.
+
+| # | Frage | Empfehlung des Autors | ☐ OK / Anmerkung |
+|---|---|---|---|
+| E1 | Ist das Filmen von Menschen (Darstellern) für dieses Projekt grundsätzlich zulässig? (Frage der Bilddarstellung von Lebewesen / Taṣwīr) | Ja, Gesichter verborgen | |
+| E2 | Genügt es, Gesichter durch Bildgestaltung zu verbergen (Rücken, Silhouette, Gegenlicht, Untersicht aus dem Grab), oder müssen sie unkenntlich gemacht werden? | Bildgestaltung, kein Verpixeln | |
+| E3 | Darf ein Darsteller den Verstorbenen spielen (im Leichentuch, auf der Bahre, im Grab)? | Nur aus Ich-Perspektive, Körper nicht sichtbar | |
+| E4 | Ghusl (Totenwaschung): gar nicht zeigen, oder nur Hände, Wasser und Tuch? | Nur Hände, Wasser, Tuch | |
+| E5 | Frauen im Bild (Angehörige, Trauernde) – in welcher Form? | Nur voll bedeckt, aus der Ferne, als Silhouette | |
+| E6 | Dreh auf einem echten muslimischen Friedhof (mit Erlaubnis der Verwaltung) – zulässig, und wo sind die Grenzen? | Nur oberirdisch, keine echten Gräber öffnen; das Grab innen wird als Set gebaut | |
+| E7 | Echtes Janaza-Gebet nachstellen – oder nur andeuten (Reihen von hinten, ohne Ton der Takbīrāt)? | Von hinten, mit echtem Gebetsablauf | |
+| E8 | Menschen auf der Ebene der Versammlung (Akt V) bleiben Lichtgestalten, weil sie laut Bukhari 6527 nackt versammelt werden – bestätigt? | Ja, keine echten Darsteller in Akhira-Szenen | |
+
+## F. Abschluss
 
 - ☐ Alle Quran-Stellen mit dem Mushaf abgeglichen
 - ☐ Alle Hadith-Wortlaute mit der Originalquelle abgeglichen
