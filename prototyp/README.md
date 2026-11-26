@@ -67,6 +67,8 @@ Prüft, ob die Quest fotorealistische 3D-Welten (Gaussian Splats) flüssig darst
 - **Adresse (URL)** einer Splat-Datei laden (der Server muss CORS erlauben).
 - Bildrate wird oben links angezeigt (in VR als kleine Tafel).
 
+**Messwerte Quest 3 (26.11.2026, generierte Testwelt):** 200.000 Punkte ≈ 90 Bilder/s · 500.000 ≈ 53 · 2 Millionen ≈ 10 (fast hängend). Zielwert pro Szene daher **etwa 300.000 Punkte**, höchstens 500.000 bei sonst einfacher Szene.
+
 Steuerung in VR: linker Stick gehen, rechter Stick drehen (30°-Schritte) und Höhe, A/X Welt umdrehen (viele Scans stehen kopfüber), B/Y zurück zum Start.
 
 Technik: three.js 0.180 und Spark 2.4.0 (`lib/three-0.180`, `lib/spark-2.4.0`, beide MIT-Lizenz). Antialiasing ist bewusst aus (Empfehlung von Spark, vermeidet einen bekannten Hänger der Quest).
