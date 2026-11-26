@@ -233,7 +233,7 @@ function besideEar(dist = 0.25) {
 // ======================================================================
 // PROLOG – das Zimmer
 // ======================================================================
-async function sceneProlog() {
+async function sceneProlog(quick = false) {
   resetWorld();
   await fadeTo(0x000000, 1, 0.01);
   const h = head();
@@ -297,6 +297,7 @@ async function sceneProlog() {
   room.screen.list = []; room.screen.next = 0; room.screen.draw();
   sound.worldLevel(1, 0.1);
   sound.setLevel('room', 0.5, 2);
+  if (quick) return;                              // nur Zimmer aufbauen (Kapitel „Sterben“)
 
   // Nach Hause kommen: Tür fällt hinter dir ins Schloss, Schlüssel werden abgelegt
   await wait(1);
@@ -823,6 +824,11 @@ let running = false;
 
 async function run(chapter) {
   running = true;
+  if (chapter === 'sterben') {
+    await sceneProlog(true);
+    await sceneDying();
+    await sceneDeathA();
+  }
   if (chapter === 'all' || chapter === 'prolog') {
     await sceneProlog();
     await sceneDying();
@@ -983,7 +989,7 @@ async function prepare() {
   await sound.resume();
   await Promise.all([sound.loadFile('talqin.mp3'), sound.loadFile('takbir.mp3')]); // eigene Aufnahmen, falls vorhanden
   await worlds.scan();                                                            // KI-Welten/Scans, falls vorhanden
-  if (['all', 'prolog'].includes(document.getElementById('chapter').value) && worlds.has('zimmer')) {
+  if (['all', 'prolog', 'sterben'].includes(document.getElementById('chapter').value) && worlds.has('zimmer')) {
     status.textContent = 'Das Zimmer wird geladen … (beim ersten Mal bis zu einer Minute)';
     await worlds.preload('zimmer');
   }
