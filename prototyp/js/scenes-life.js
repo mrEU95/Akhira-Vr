@@ -75,13 +75,16 @@ export class Room {
     // Schreibtisch mit Handy und Tasse
     g.add(box(1.2, 0.04, 0.6, woodMat, -1.1, 0.75, -1.8));
     g.add(box(0.05, 0.73, 0.55, woodMat, -1.65, 0.37, -1.8), box(0.05, 0.73, 0.55, woodMat, -0.55, 0.37, -1.8));
-    const phoneBody = box(0.075, 0.009, 0.155, new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3 }), -0.95, 0.775, -1.7);
-    g.add(phoneBody);
+    // Handy als eigene Gruppe (bleibt auch im Fotomodus sichtbar)
+    this.phone = new THREE.Group();
+    this.phone.add(box(0.075, 0.009, 0.155, new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3 }), 0, 0.0045, 0));
     this.phoneScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.068, 0.145), new THREE.MeshBasicMaterial({ color: 0x9fc4ff }));
     this.phoneScreen.rotation.x = -Math.PI / 2;
-    this.phoneScreen.position.set(-0.95, 0.781, -1.7);
-    g.add(this.phoneScreen);
-    this.phonePos = V(-0.95, 0.78, -1.7);
+    this.phoneScreen.position.set(0, 0.0095, 0);
+    this.phone.add(this.phoneScreen);
+    this.phone.position.set(-0.95, 0.771, -1.7);
+    g.add(this.phone);
+    this.phonePos = this.phone.position;
     const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.035, 0.1, 20), new THREE.MeshStandardMaterial({ color: 0xece6da, roughness: 0.4 }));
     cup.position.set(-1.35, 0.82, -1.85); g.add(cup);
 
@@ -89,11 +92,20 @@ export class Room {
     g.add(box(0.25, 0.03, 0.9, woodMat, X0 + 0.13, 1.45, -0.6));
     const books = [0x5b3b2a, 0x2c3e50, 0x7a6a4f];
     books.forEach((c, i) => g.add(box(0.18, 0.24, 0.04, new THREE.MeshStandardMaterial({ color: c, roughness: 0.9 }), X0 + 0.13, 1.585, -0.95 + i * 0.05)));
-    this.mushafMat = new THREE.MeshStandardMaterial({ color: 0x3f4f40, roughness: 1 }); // staubig: matt, entsättigt
-    this.mushaf = box(0.17, 0.25, 0.05, this.mushafMat, X0 + 0.13, 1.59, -0.45);
-    g.add(this.mushaf);
+    this.mushafMat = new THREE.MeshStandardMaterial({ color: 0x7d8a72, roughness: 1 }); // staubig: matt, entsättigt, grauer Schleier
+    // Mushaf als eigene Gruppe (bleibt auch im Fotomodus sichtbar)
+    this.mushafGroup = new THREE.Group();
+    this.mushaf = box(0.17, 0.25, 0.05, this.mushafMat, 0, 0, 0);
+    this.mushafGroup.add(this.mushaf);
+    this.mushafGroup.position.set(X0 + 0.13, 1.59, -0.45);
+    g.add(this.mushafGroup);
     const gold = new THREE.MeshStandardMaterial({ color: 0x9a8455, roughness: 0.8, metalness: 0.3 });
-    g.add(box(0.171, 0.03, 0.051, gold, X0 + 0.13, 1.66, -0.45));
+    this.mushafGroup.add(box(0.171, 0.03, 0.051, gold, 0, 0.07, 0));
+    // Schwaches Licht der Nachttischlampe auf dem Mushaf (nur im Fotomodus an)
+    this.mushafLight = new THREE.PointLight(0xffd9a8, 0, 1.2, 2);
+    this.mushafLight.position.set(0.15, 0.3, 0.1);
+    this.mushafGroup.add(this.mushafLight);
+    this.homes = { phone: this.phone.position.clone(), mushaf: this.mushafGroup.position.clone() };
 
     // Tür rechts
     g.add(box(0.05, 2.05, 0.9, woodMat, X1 - 0.03, 1.03, 0.2));
@@ -126,7 +138,32 @@ export class Room {
     this.setLamp(1);
   }
   // Fotomodus: ein 360°-Foto ersetzt den gebauten Raum, nur die Angehörigen bleiben
-  setPhotoMode(on) { this.group.children.forEach((c) => { c.visible = !on || c === this.family || c === this.lamp || c === this.fill; }); }
+  setPhotoMode(on) {
+    const keep = [this.family, this.lamp, this.fill, this.phone, this.mushafGroup];
+    this.group.children.forEach((c) => { c.visible = !on || keep.includes(c); });
+    this.mushafLight.intensity = on ? 0.5 : 0;
+    this.mushafGroup.scale.setScalar(on ? 1.15 : 1);
+    if (!on) {
+      this.phone.position.copy(this.homes.phone); this.phone.rotation.set(0, 0, 0);
+      this.mushafGroup.position.copy(this.homes.mushaf); this.mushafGroup.rotation.set(0, 0, 0);
+    }
+  }
+  // Gegenstände passend ins 360°-Foto setzen. Anker: u/v im Foto (0..1), s = Höhe der Fläche im Raum (m).
+  // Die Entfernung ergibt sich aus der Kamerahöhe des Fotos (camH); gesetzt wird entlang des Sehstrahls
+  // vom Auge des Zuschauers, damit der Gegenstand genau dort erscheint, wo die Fläche im Foto ist.
+  placeInPhoto(anchors, eyeY, drehungDeg = 0, camH = 1.45) {
+    const put = (obj, a, lying) => {
+      if (!a) return;
+      const th = (a.u - 0.5) * 2 * Math.PI - (drehungDeg * Math.PI) / 180;
+      const ph = (0.5 - a.v) * Math.PI;
+      const dist = Math.max(0.6, (camH - a.s) / Math.tan(-ph));
+      const dir = new THREE.Vector3(Math.sin(th) * Math.cos(ph), Math.sin(ph), -Math.cos(th) * Math.cos(ph));
+      obj.position.set(dir.x * dist, eyeY + dir.y * dist + 0.01, dir.z * dist);
+      obj.rotation.set(lying ? -Math.PI / 2 : 0, -th + (a.dreh || 0), 0, 'YXZ');
+    };
+    put(this.phone, anchors.handy, false);
+    put(this.mushafGroup, anchors.mushaf, true);
+  }
   setLamp(level, warm = 0) {
     this.lamp.intensity = 7 * level;
     this.lamp.color.setRGB(1, 0.82 - warm * 0.1, 0.63 - warm * 0.15);

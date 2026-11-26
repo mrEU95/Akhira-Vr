@@ -223,7 +223,15 @@ async function sceneProlog() {
   const h = head();
   room.group.position.set(h.x, 0, h.z);
   room.visible = true;
-  if (pano.show('zimmer')) room.setPhotoMode(true);
+  if (pano.show('zimmer')) {
+    room.setPhotoMode(true);
+    // Handy auf den Schreibtisch, Mushaf auf den Nachttisch (Positionen im Foto; anpassbar in einstellungen.json)
+    const z = pano.settings.zimmer || {};
+    room.placeInPhoto({
+      handy: z.handy || { u: 0.315, v: 0.66, s: 0.76 },
+      mushaf: z.mushaf || { u: 0.742, v: 0.598, s: 0.56 },
+    }, h.y, z.drehung || 0);
+  }
   roomLamp(1, 0);
   room.family.visible = false;
   sound.worldLevel(1, 0.1);

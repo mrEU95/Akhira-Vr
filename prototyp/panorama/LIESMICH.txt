@@ -11,6 +11,7 @@ Liegt hier ein Foto mit einem der folgenden Namen, ersetzt es automatisch den ge
 
 FORMAT
 ------
+- EXR/HDR-Dateien gehen auch: tools/exr2jpg.py wandelt sie in ein JPG um.
 - Equirektangular, Seitenverhältnis 2:1 (z. B. 8192 × 4096 oder 6144 × 3072), als JPG.
 - Die Bildmitte wird zur Blickrichtung „vorne“.
 - Falls die Ausrichtung nicht passt: Datei einstellungen.json anlegen, z. B.
@@ -27,3 +28,9 @@ WORAUF ACHTEN
 - KEINE fremde Schrift oder Symbole, die nicht passen (Werbung, Kreuze, Statuen).
 - Ein 360°-Foto ist ein Standbild von einem festen Punkt: perfekt für Hintergrund, Himmel,
   Räume. Was ganz nah ist (Ziegel, Bahre, Erde), baut der Prototyp weiterhin selbst davor.
+
+VORHANDEN
+---------
+zimmer.jpg   Poly Haven „Hotel Room“ von Greg Zaal, CC0 (polyhaven.com), 4K, aus EXR umgewandelt.
+             Handy liegt auf dem Schreibtisch, der Mushaf auf dem Nachttisch links vom Bett
+             (Positionen anpassbar in einstellungen.json: "zimmer": {"handy": {u, v, s}, "mushaf": {u, v, s}}).
