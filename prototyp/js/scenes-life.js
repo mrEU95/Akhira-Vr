@@ -125,6 +125,8 @@ export class Room {
     this.headOnBed = V(0, 0.62, 1.55); // Kopfposition, wenn er liegt
     this.setLamp(1);
   }
+  // Fotomodus: ein 360°-Foto ersetzt den gebauten Raum, nur die Angehörigen bleiben
+  setPhotoMode(on) { this.group.children.forEach((c) => { c.visible = !on || c === this.family || c === this.lamp || c === this.fill; }); }
   setLamp(level, warm = 0) {
     this.lamp.intensity = 7 * level;
     this.lamp.color.setRGB(1, 0.82 - warm * 0.1, 0.63 - warm * 0.15);
@@ -225,17 +227,23 @@ export class Mosque {
     // Bahre vor dem Mihrab
     const woodMat = pbrMaterial('wood'); setRepeat(woodMat, 0.6, 0.6);
     const bierZ = -3.6;
-    g.add(box(0.7, 0.05, 2.0, woodMat, 0, 0.75, bierZ));
-    for (const [x, z] of [[-0.3, -0.9], [0.3, -0.9], [-0.3, 0.9], [0.3, 0.9]]) g.add(box(0.05, 0.75, 0.05, woodMat, x, 0.37, bierZ + z));
+    // Quer zur Qibla: der Kopf liegt zur Rechten des Imams (+x)
+    const bier = new THREE.Group();
+    bier.add(box(2.0, 0.05, 0.7, woodMat, 0, 0.75, bierZ));
+    for (const [x, z] of [[-0.9, -0.3], [-0.9, 0.3], [0.9, -0.3], [0.9, 0.3]]) bier.add(box(0.05, 0.75, 0.05, woodMat, x, 0.37, bierZ + z));
     const shroud = new THREE.MeshStandardMaterial({ color: 0xf4f1ea, roughness: 1 });
     const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 1.45, 6, 16), shroud);
-    body.rotation.x = Math.PI / 2; body.position.set(0, 0.95, bierZ); body.scale.set(1.1, 1, 0.7);
-    g.add(body);
+    body.rotation.z = Math.PI / 2; body.position.set(0, 0.95, bierZ); body.scale.set(1.1, 1, 0.7);
+    bier.add(body);
+    g.add(bier);
+    this.bier = bier;
     // Kopf liegt Richtung Osten/rechts; Blick nach oben
-    this.headOnBier = V(0, 1.12, bierZ - 0.78);
+    this.headOnBier = V(0.78, 1.12, bierZ);
     this.doorPos = V(0, 1.6, HZ);
     this.setLight(1);
   }
+  // Fotomodus: ein 360°-Foto ersetzt den gebauten Raum, nur die Bahre bleibt
+  setPhotoMode(on) { this.group.children.forEach((c) => { c.visible = !on || c === this.bier; }); }
   setLight(level) {
     this.lights.forEach((l, i) => { l.intensity = (i === 0 ? 14 : 8) * level; });
     this.fill.intensity = 0.7 * level;
@@ -336,4 +344,59 @@ export class DescendingLights {
   }
   set level(v) { this.mat.opacity = v; this.group.visible = v > 0.001 || this.headMat.opacity > 0.001; }
   set headLevel(v) { this.headMat.opacity = v; this.group.visible = v > 0.001 || this.mat.opacity > 0.001; }
+}
+
+// ======================================================================
+// 360°-Fotos (equirectangular, 2:1) als echte Umgebung.
+// Liegen sie als panorama/<name>.jpg vor, ersetzen sie die gebauten Räume.
+// ======================================================================
+export const PANORAMEN = ['zimmer', 'moschee', 'himmel', 'friedhof'];
+export class Panorama {
+  constructor(scene) {
+    const geo = new THREE.SphereGeometry(150, 64, 32);
+    geo.scale(-1, 1, 1); // von innen gesehen, nicht gespiegelt
+    this.mat = new THREE.MeshBasicMaterial({ depthWrite: false, fog: false, color: 0xffffff });
+    this.mesh = new THREE.Mesh(geo, this.mat);
+    this.mesh.renderOrder = -20;
+    this.mesh.visible = false;
+    scene.add(this.mesh);
+    this.tex = {};
+    this.settings = {};
+    this.loader = new THREE.TextureLoader();
+  }
+  async loadSettings() {
+    try {
+      const r = await fetch('panorama/einstellungen.json', { cache: 'no-store' });
+      if (r.ok) this.settings = await r.json();
+    } catch (e) { /* keine Einstellungen */ }
+  }
+  async load(name) {
+    if (name in this.tex) return this.tex[name];
+    this.tex[name] = null;
+    try {
+      const url = 'panorama/' + name + '.jpg';
+      const head = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+      if (!head.ok) return null;
+      const t = await this.loader.loadAsync(url);
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = 4;
+      this.tex[name] = t;
+    } catch (e) { /* kein Foto */ }
+    return this.tex[name];
+  }
+  has(name) { return !!this.tex[name]; }
+  // Zeigt das Foto; Drehung (Grad) aus panorama/einstellungen.json, z. B. {"moschee": {"drehung": 90}}
+  show(name) {
+    const t = this.tex[name];
+    if (!t) return false;
+    this.mat.map = t; this.mat.needsUpdate = true;
+    const deg = (this.settings[name] && this.settings[name].drehung) || 0;
+    this.mesh.rotation.set(0, -Math.PI / 2 + (deg * Math.PI) / 180, 0); // Bildmitte = Blickrichtung
+    this.brightness = 1;
+    this.mesh.visible = true;
+    return true;
+  }
+  set brightness(v) { this.mat.color.setScalar(v); }
+  hide() { this.mesh.visible = false; }
+  follow(pos) { this.mesh.position.copy(pos); }
 }

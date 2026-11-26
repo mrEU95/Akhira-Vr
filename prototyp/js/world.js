@@ -590,6 +590,9 @@ export class Cemetery {
     this.walking = false;
   }
 
+  // Fotomodus: ein 360°-Foto zeigt den Friedhof, nur die Vögel bleiben (sie fliegen auf)
+  setPhotoMode(on) { this.group.children.forEach((c) => { c.visible = !on || this.birds.includes(c); }); }
+
   reset() {
     for (const b of this.birds) { b.userData.flying = false; b.position.copy(b.userData.home); b.scale.set(1, 1, 1); }
     this.walker.position.x = -9;

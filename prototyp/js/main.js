@@ -6,7 +6,7 @@ import {
   Sky, Grave, Lahd, Clods, LightPresences, DarkPresences, LightGate, EmberOpening,
   Companion, Cemetery,
 } from './world.js';
-import { Room, Mosque, Veil, DescendingLights } from './scenes-life.js';
+import { Room, Mosque, Veil, DescendingLights, Panorama, PANORAMEN } from './scenes-life.js';
 
 // ======================================================================
 // Grundgerüst
@@ -67,6 +67,12 @@ const room = new Room(scene);
 const mosque = new Mosque(scene);
 const veil = new Veil(camera);
 const descLights = new DescendingLights(scene);
+const pano = new Panorama(scene);
+// Zimmerlicht – dimmt im Fotomodus auch das 360°-Foto
+function roomLamp(level, warm = 0) {
+  room.setLamp(level, warm);
+  if (pano.mesh.visible) pano.brightness = Math.max(0.2, Math.min(1, level));
+}
 let veilBase = 0;     // Grundtrübung des Schleiers
 let veilPulse = 0;    // 0..1: ab und zu kurz klar (Kampf gegen das Wegdämmern)
 let phoneOn = false, nextBuzz = 0, phoneFlash = 0;
@@ -180,6 +186,8 @@ function resetWorld() {
   mosque.visible = false;
   veilBase = 0; veilPulse = 0; veil.opacity = 0;
   descLights.level = 0; descLights.headLevel = 0;
+  pano.hide();
+  room.setPhotoMode(false); mosque.setPhotoMode(false); cemetery.setPhotoMode(false);
   panel.setMode('yaw');
   phoneOn = false;
   if (sound.ctx) {
@@ -215,7 +223,8 @@ async function sceneProlog() {
   const h = head();
   room.group.position.set(h.x, 0, h.z);
   room.visible = true;
-  room.setLamp(1, 0);
+  if (pano.show('zimmer')) room.setPhotoMode(true);
+  roomLamp(1, 0);
   room.family.visible = false;
   sound.worldLevel(1, 0.1);
   sound.setLevel('room', 0.6, 2);
@@ -227,7 +236,7 @@ async function sceneProlog() {
   await say(TX.jedeSeele, 1);
   await wait(3);
   phoneOn = false; // das Handy hört auf zu vibrieren
-  await tween(6, (t) => room.setLamp(1 - 0.2 * t, t));
+  await tween(6, (t) => roomLamp(1 - 0.2 * t, t));
   await say(TX.zerstoerer, 1);
   await wait(2);
 }
@@ -248,7 +257,7 @@ async function sceneDying() {
   await fadeTo(0x000000, 0, 3);
 
   // Die Welt verschwimmt
-  tween(14, (t) => { veilBase = 0.62 * t; room.setLamp(0.8 - 0.3 * t, 1); }, (x) => x);
+  tween(14, (t) => { veilBase = 0.62 * t; roomLamp(0.8 - 0.3 * t, 1); }, (x) => x);
   sound.muffle(0.75, 14);
   veilPulse = 1;
   await wait(4);
@@ -278,7 +287,7 @@ async function sceneDying() {
   veilPulse = 0;
   // Die Welt tritt zurück: der Schleier wird grau und dunkel, damit das Licht von oben hervortritt
   const vc = veil.mat.color.clone(), dark = new THREE.Color(0x4a4844);
-  await tween(4, (t) => { veil.mat.color.copy(vc).lerp(dark, t); veilBase = 0.62 + 0.2 * t; room.setLamp(0.5 * (1 - t), 1); });
+  await tween(4, (t) => { veil.mat.color.copy(vc).lerp(dark, t); veilBase = 0.62 + 0.2 * t; roomLamp(0.5 * (1 - t), 1); });
   descLights.group.position.copy(head());
   descLights.group.rotation.set(0, 0, 0);
   descLights.descend(0);
@@ -334,6 +343,7 @@ async function sceneJanaza() {
   mosque.group.position.set(0, 0, 0);
   mosque.visible = true;
   mosque.setLight(1);
+  if (pano.show('moschee')) mosque.setPhotoMode(true);
   lieDown('x');
   placeHead(mosque.group.localToWorld(mosque.headOnBier.clone()));
   panel.setMode('free'); panel.setDistance(0.8);
@@ -377,6 +387,7 @@ async function sceneJanaza() {
   // Draußen: Himmel und Baumkronen ziehen vorüber
   await fadeTo(0xffffff, 1, 1.5);
   mosque.visible = false;
+  pano.hide();
   sky.set('#9fb2c6', '#e9e6de'); sky.opacity = 1;
   hemi.color.set(0xdfe6ee); hemi.groundColor.set(0x4a4232); hemi.intensity = 1.2;
   sun.position.set(head().x - 20, 30, head().z + 10);
@@ -385,6 +396,7 @@ async function sceneJanaza() {
   cemetery.reset(); cemetery.walking = false;
   cemetery.group.position.set(head().x, 0, head().z + 4);
   cemetery.group.visible = true;
+  if (pano.show('friedhof')) { cemetery.setPhotoMode(true); sky.opacity = 0; }
   sound.worldLevel(1, 0.5);
   sound.setLevel('wind', 0.2, 2);
   const s2 = rig.position.clone();
@@ -429,6 +441,7 @@ async function sceneBurial() {
   const gp = grave.group.position, d = grave.dims;
   sky.set('#9fb2c6', '#e9e6de');
   sky.opacity = 1;
+  if (pano.show('himmel')) sky.opacity = 0;   // echter Himmel über dem Graben
   hemi.color.set(0xe4e9f0); hemi.groundColor.set(0x5a4634);
   hemi.intensity = 0.9;
   // Sonne steht hoch und etwas hinter dem Zuschauer: Sie fällt in den Graben und auf die gegenüberliegende Wand
@@ -462,6 +475,7 @@ async function sceneBurial() {
   sun.castShadow = false;
   sun.intensity = 0;
   sky.opacity = 0;
+  pano.hide();
   lahd.visible = false;
   residual.color.set(0x9aa6b4);
   residual.intensity = 0.12;
@@ -666,9 +680,11 @@ async function scenePathB() {
   cemetery.reset();
   cemetery.group.visible = true;
   cemetery.group.position.set(head().x, 0, head().z + 3);
+  if (pano.show('friedhof')) { cemetery.setPhotoMode(true); }
   sky.set('#a9b8c8', '#e6e3db');
   sky.opacity = 1;
   scene.fog = new THREE.Fog(0xd9d8d2, 18, 90);
+  if (pano.mesh.visible) { sky.opacity = 0; scene.fog = null; } // echtes Foto statt Himmel und Nebel
   hemi.color.set(0xdfe6ee); hemi.groundColor.set(0x4a4232);
   hemi.intensity = 1.3;
   sun.position.set(head().x - 20, 30, head().z + 10);
@@ -802,6 +818,7 @@ renderer.setAnimationLoop(() => {
   cemetery.update(dt, now);
   camera.updateMatrixWorld();
   sky.follow(head());
+  pano.follow(head());
   panel.update(camera, dt);
   sound.updateListener(camera);
 
@@ -823,6 +840,8 @@ async function prepare() {
   sound.init();
   await sound.resume();
   await Promise.all([sound.loadFile('talqin.mp3'), sound.loadFile('takbir.mp3')]); // eigene Aufnahmen, falls vorhanden
+  await pano.loadSettings();
+  await Promise.all(PANORAMEN.map((n) => pano.load(n)));                           // 360°-Fotos, falls vorhanden
   try { await document.fonts.load('600 40px "Noto Naskh Arabic"'); } catch (e) { /* Systemschrift */ }
   // Kurzer stiller Ton, damit Safari/Quest Audio freigeben
   if (ttsEnabled && window.speechSynthesis) window.speechSynthesis.speak(new SpeechSynthesisUtterance(' '));

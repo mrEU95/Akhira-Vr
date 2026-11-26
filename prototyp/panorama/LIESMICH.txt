@@ -1,0 +1,29 @@
+360°-FOTOS – echte Umgebung für den Prototyp
+=============================================
+
+Liegt hier ein Foto mit einem der folgenden Namen, ersetzt es automatisch den gebauten Raum:
+
+  zimmer.jpg     Prolog und Sterben (ein gewöhnliches Zimmer, aufgenommen auf Sitzhöhe)
+  moschee.jpg    Totengebet (Gebetsraum, am besten aus der Mitte vor dem Mihrab, Höhe ca. 1 m –
+                 der Zuschauer liegt und schaut nach oben: Decke/Kuppel sind besonders wichtig)
+  himmel.jpg     Himmel über dem offenen Grab (Tageslicht, leicht bewölkt)
+  friedhof.jpg   Friedhof an der Oberfläche (nach dem Totengebet und in Weg B)
+
+FORMAT
+------
+- Equirektangular, Seitenverhältnis 2:1 (z. B. 8192 × 4096 oder 6144 × 3072), als JPG.
+- Die Bildmitte wird zur Blickrichtung „vorne“.
+- Falls die Ausrichtung nicht passt: Datei einstellungen.json anlegen, z. B.
+    { "moschee": { "drehung": 90 }, "friedhof": { "drehung": -45 } }
+  (Grad, im Uhrzeigersinn gedreht gesehen von oben)
+
+WORAUF ACHTEN
+-------------
+- LIZENZ: Nur Fotos mit einer Lizenz, die die Nutzung in eigenen Werken erlaubt
+  (z. B. „Standard-Lizenz“ bei Adobe Stock, Shutterstock, iStock, Pond5 oder CC0 bei Poly Haven).
+  NICHT „nur redaktionelle Nutzung“ (editorial use only) – das ist bei Aufnahmen aus Mekka
+  und Medina häufig der Fall und darf dann nicht in einem Film verwendet werden.
+- MENSCHEN: Keine erkennbaren Gesichter (Regel G12) – am besten leere Räume.
+- KEINE fremde Schrift oder Symbole, die nicht passen (Werbung, Kreuze, Statuen).
+- Ein 360°-Foto ist ein Standbild von einem festen Punkt: perfekt für Hintergrund, Himmel,
+  Räume. Was ganz nah ist (Ziegel, Bahre, Erde), baut der Prototyp weiterhin selbst davor.
