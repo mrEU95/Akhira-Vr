@@ -1,6 +1,34 @@
-Eigene Aufnahmen (optional) – einfach als MP3 mit genau diesem Namen hier ablegen:
+AUFNAHMELISTE – echte Klänge für den Prototyp
+=============================================
 
-  talqin.mp3   leises Flüstern „Lā ilāha illā Llāh“ (2–3 Mal), nah am Mikrofon
-  takbir.mp3   ein einzelnes „Allāhu akbar“ des Imams beim Totengebet
+Aufnehmen mit dem Handy (Sprachmemo-App genügt). MP3, M4A oder WAV – alles geht.
+Ruhig aufnehmen, keine Musik im Hintergrund, nicht übersteuern, je 2–3 Versuche.
+Dateien hier ablegen (oder an Claude schicken) – genau mit diesen Namen.
 
-Fehlt eine Datei, zeigt der Prototyp stattdessen den Text und spielt einen Platzhalter-Klang.
+PRIORITÄT 1 – wirkt am stärksten
+--------------------------------
+talqin.mp3     Leises Flüstern „Lā ilāha illā Llāh“, 2–3 Mal, ganz nah am Mikrofon (ca. 10 cm).
+takbir.mp3     Ein einzelnes „Allāhu akbar“ wie beim Totengebet (ideal: vom Imam der Moschee).
+sandalen.mp3   Handy auf den Boden legen (Erde/Kies), mit Sandalen 20–30 m davon weggehen.
+               Am besten 3–5 Personen gleichzeitig, ohne zu sprechen.
+erde.mp3       Mit einer Schaufel Erde auf ein Holzbrett oder eine Steinplatte werfen,
+               Handy UNTER/hinter dem Brett (dumpf, von innen gehört). 10–15 Würfe.
+
+PRIORITÄT 2
+-----------
+ziegel.mp3     Einen Stein/Ziegel langsam an einer Wand entlangschaben und dumpf aufsetzen.
+wasser.mp3     Wasser aus einer Kanne langsam über Hände in eine Schüssel gießen (Waschung).
+wind.mp3       Wind im Freien, 1–2 Minuten (Mikrofon mit einer Socke abdecken gegen Rumpeln).
+atem.mp3       Langsames, schweres Atmen, 1 Minute.
+zimmer.mp3     Ein Zimmer nachts: Kühlschrank, ferner Verkehr, 1–2 Minuten.
+
+PRIORITÄT 3 (nur mit Erlaubnis der Moschee, keine erkennbaren Stimmen)
+----------------------------------------------------------------------
+reihen.mp3     Menschen stellen sich zum Gebet auf: Schritte auf Teppich, Rascheln, dann Stille.
+
+REZITATION UND ERZÄHLSTIMME (für die fertige Fassung)
+-----------------------------------------------------
+Quran-Verse nur von einem Menschen rezitiert (z. B. der Imam der Moschee), mit seiner Erlaubnis.
+Keine KI-Rezitation. Die deutsche Erzählstimme kann selbst aufgenommen werden.
+
+Fehlt eine Datei, nutzt der Prototyp den eingebauten Platzhalter-Klang.
