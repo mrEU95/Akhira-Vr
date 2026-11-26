@@ -86,17 +86,77 @@ export class Sky {
 
 // ---------- Gesichtslose Gestalt ----------
 
-export function makeFigure(material, height = 1.72) {
+// opts.simple: nur Umriss (für Lichtgestalten/Gefährten). Sonst: Mensch im Gewand, Gesicht im Schatten (G12).
+// opts.kind: 'mann' (Kappe) | 'tuch' (Kopftuch/Ghutra) | 'frau' (langes Kopftuch); opts.bow: Kopf geneigt (Trauer)
+const FIG_SHADOW = new THREE.MeshStandardMaterial({ color: 0x0d0b09, roughness: 1 });
+const FIG_SKIN = new THREE.MeshStandardMaterial({ color: 0x8a6a52, roughness: 0.9 });
+const FIG_CAP = new THREE.MeshStandardMaterial({ color: 0xece9e2, roughness: 1 });
+export function makeFigure(material, height = 1.72, opts = {}) {
   const g = new THREE.Group();
   const s = height / 1.72;
-  const pts = [
-    [0.0, 0], [0.17, 0.02], [0.2, 0.5], [0.23, 0.95], [0.25, 1.3], [0.2, 1.42],
-    [0.07, 1.47], [0.06, 1.5], [0.0, 1.5],
-  ].map(([x, y]) => new THREE.Vector2(x * s, y * s));
-  const body = new THREE.Mesh(new THREE.LatheGeometry(pts, 24), material);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.12 * s, 20, 14), material);
-  head.position.y = 1.6 * s;
-  g.add(body, head);
+  if (opts.simple) {
+    const pts = [
+      [0.0, 0], [0.17, 0.02], [0.2, 0.5], [0.23, 0.95], [0.25, 1.3], [0.2, 1.42],
+      [0.07, 1.47], [0.06, 1.5], [0.0, 1.5],
+    ].map(([x, y]) => new THREE.Vector2(x * s, y * s));
+    g.add(new THREE.Mesh(new THREE.LatheGeometry(pts, 24), material));
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.12 * s, 20, 14), material);
+    head.position.y = 1.6 * s;
+    g.add(head);
+    return g;
+  }
+  const kind = opts.kind || (Math.random() < 0.5 ? 'mann' : 'tuch');
+  const body = new THREE.Group();
+  g.add(body);
+  // Gewand (Thobe/Abaya) bis zu den Knöcheln: elliptischer Körper mit Taille und Schultern
+  const prof = [[0.0, 0.03], [0.2, 0.035], [0.215, 0.12], [0.2, 0.55], [0.175, 0.95], [0.185, 1.12],
+    [0.2, 1.28], [0.19, 1.38], [0.13, 1.45], [0.06, 1.49], [0.05, 1.53], [0.0, 1.53]]
+    .map(([x, y]) => new THREE.Vector2(x, y));
+  const robe = new THREE.Mesh(new THREE.LatheGeometry(prof, 36), material);
+  robe.scale.set(1.18, 1, 0.72);
+  body.add(robe);
+  // Schultern
+  for (const sx of [-1, 1]) {
+    const sh = new THREE.Mesh(new THREE.SphereGeometry(0.085, 16, 12), material);
+    sh.scale.set(1.1, 0.8, 0.9); sh.position.set(sx * 0.19, 1.37, 0);
+    body.add(sh);
+    // Arme hängen locker, leicht nach vorne; Ärmel bis zum Handgelenk
+    const upper = new THREE.Mesh(new THREE.CapsuleGeometry(0.052, 0.26, 6, 12), material);
+    upper.position.set(sx * 0.235, 1.17, 0.01); upper.rotation.z = sx * 0.06;
+    const lower = new THREE.Mesh(new THREE.CapsuleGeometry(0.046, 0.24, 6, 12), material);
+    lower.position.set(sx * 0.25, 0.9, 0.05); lower.rotation.set(-0.18, 0, sx * 0.04);
+    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.042, 12, 10), FIG_SKIN);
+    hand.scale.set(0.8, 1.25, 0.55); hand.position.set(sx * 0.255, 0.73, 0.08);
+    body.add(upper, lower, hand);
+    // Füße
+    const foot = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 8), FIG_SHADOW);
+    foot.scale.set(0.9, 0.45, 2.2); foot.position.set(sx * 0.08, 0.025, 0.07);
+    body.add(foot);
+  }
+  // Kopf mit Hals; das Gesicht liegt im Schatten
+  const headG = new THREE.Group();
+  headG.position.y = 1.53;
+  body.add(headG);
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.05, 0.08, 12), FIG_SKIN);
+  neck.position.y = 0.03; headG.add(neck);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.1, 20, 16), kind === 'frau' ? material : FIG_SKIN);
+  head.scale.set(0.9, 1.12, 1.0); head.position.y = 0.15; headG.add(head);
+  const face = new THREE.Mesh(new THREE.SphereGeometry(0.083, 16, 12), FIG_SHADOW);
+  face.scale.set(0.82, 1.05, 0.45); face.position.set(0, 0.14, 0.062); headG.add(face);
+  if (kind === 'mann') {
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(0.103, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2.2), FIG_CAP);
+    cap.position.y = 0.17; cap.scale.set(0.92, 0.9, 1.02); headG.add(cap);
+  } else {
+    // Tuch über Kopf und Schultern (Ghutra bzw. langes Kopftuch)
+    const len = kind === 'frau' ? 0.55 : 0.32;
+    const cloth = [[0.0, 0.27], [0.08, 0.26], [0.11, 0.2], [0.12, 0.1], [0.13, 0.0], [0.16, -0.12], [0.2, -len]]
+      .map(([x, y]) => new THREE.Vector2(x, y));
+    const tuch = new THREE.Mesh(new THREE.LatheGeometry(cloth, 28, Math.PI * 0.62, Math.PI * 1.76),
+      kind === 'frau' ? material : FIG_CAP);
+    tuch.scale.set(1.05, 1, 1.0); headG.add(tuch);
+  }
+  if (opts.bow !== false) headG.rotation.x = 0.28; // Kopf in Trauer leicht gesenkt
+  g.scale.setScalar(s);
   return g;
 }
 
@@ -303,7 +363,7 @@ export class Lahd {
     const white = new THREE.MeshStandardMaterial({ color: 0xcfc9bd, roughness: 1 });
     const spots = [[-0.85, f - TW - 0.3], [-0.1, f - TW - 0.35], [0.7, f - TW - 0.3], [-X - 0.35, f - 0.35], [X + 0.35, f - 0.5], [1.0, f - TW - 1.1], [-0.6, f - TW - 1.2]];
     spots.forEach(([x, z], i) => {
-      const fig = makeFigure(i % 3 === 1 ? white : robe, 1.62 + Math.random() * 0.22);
+      const fig = makeFigure(i % 3 === 1 ? white : robe, 1.62 + Math.random() * 0.22, { kind: ['mann', 'tuch', 'mann'][i % 3] });
       fig.position.set(x, D, z);
       fig.lookAt(this.group.position.x + 0, D, f - TW / 2 + 0.2);
       fig.traverse((o) => { o.castShadow = true; });
@@ -490,16 +550,16 @@ export class Companion {
     scene.add(this.group);
     if (kind === 'good') {
       this.mat = new THREE.MeshBasicMaterial({ color: 0xfff1d6, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
-      this.group.add(makeFigure(this.mat, 1.78));
+      this.group.add(makeFigure(this.mat, 1.78, { simple: true }));
       this.haloMat = new THREE.SpriteMaterial({ map: radialTexture('rgba(255,246,226,1)'), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
       const halo = new THREE.Sprite(this.haloMat);
       halo.scale.set(2.4, 3.2, 1); halo.position.y = 1.0;
       this.group.add(halo);
     } else {
       this.mat = new THREE.MeshBasicMaterial({ color: 0x040302, transparent: true, opacity: 0 });
-      this.group.add(makeFigure(this.mat, 1.78));
+      this.group.add(makeFigure(this.mat, 1.78, { simple: true }));
       this.rimMat = new THREE.MeshBasicMaterial({ color: 0x5a1405, side: THREE.BackSide, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
-      const rim = makeFigure(this.rimMat, 1.78);
+      const rim = makeFigure(this.rimMat, 1.78, { simple: true });
       rim.scale.set(1.08, 1.02, 1.08);
       this.group.add(rim);
     }
@@ -583,7 +643,7 @@ export class Cemetery {
 
     // Ein Mensch geht zwischen den Gräbern entlang – er hört nichts
     this.walkerMat = new THREE.MeshStandardMaterial({ color: 0x2d2b28, roughness: 1 });
-    this.walker = makeFigure(this.walkerMat, 1.75);
+    this.walker = makeFigure(this.walkerMat, 1.75, { kind: 'mann', bow: false });
     this.walker.position.set(-9, 0, -5.2);
     this.walker.rotation.y = Math.PI / 2;
     this.group.add(this.walker);

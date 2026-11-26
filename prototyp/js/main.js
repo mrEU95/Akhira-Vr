@@ -6,7 +6,7 @@ import {
   Sky, Grave, Lahd, Clods, LightPresences, DarkPresences, LightGate, EmberOpening,
   Companion, Cemetery,
 } from './world.js';
-import { Room, Mosque, Veil, DescendingLights, Panorama, PANORAMEN } from './scenes-life.js';
+import { Room, Mosque, Veil, DescendingLights, Panorama, PANORAMEN, ProjectedRoom } from './scenes-life.js';
 
 // ======================================================================
 // Grundgerüst
@@ -68,10 +68,13 @@ const mosque = new Mosque(scene);
 const veil = new Veil(camera);
 const descLights = new DescendingLights(scene);
 const pano = new Panorama(scene);
+const proom = new ProjectedRoom(scene);   // echter Raum aus dem 360°-Foto (mit Tiefe)
+let allowWalk = false;                    // Gehen mit dem Stick (nur im Zimmer)
 // Zimmerlicht – dimmt im Fotomodus auch das 360°-Foto
 function roomLamp(level, warm = 0) {
   room.setLamp(level, warm);
   if (pano.mesh.visible) pano.brightness = Math.max(0.2, Math.min(1, level));
+  if (proom.visible) proom.brightness = Math.max(0.15, Math.min(1, level));
 }
 let veilBase = 0;     // Grundtrübung des Schleiers
 let veilPulse = 0;    // 0..1: ab und zu kurz klar (Kampf gegen das Wegdämmern)
@@ -187,6 +190,8 @@ function resetWorld() {
   veilBase = 0; veilPulse = 0; veil.opacity = 0;
   descLights.level = 0; descLights.headLevel = 0;
   pano.hide();
+  proom.visible = false;
+  allowWalk = false;
   room.setPhotoMode(false); mosque.setPhotoMode(false); cemetery.setPhotoMode(false);
   panel.setMode('yaw');
   phoneOn = false;
@@ -223,14 +228,18 @@ async function sceneProlog() {
   const h = head();
   room.group.position.set(h.x, 0, h.z);
   room.visible = true;
-  if (pano.show('zimmer')) {
+  if (pano.has('zimmer')) {
+    // Echter Raum: das Foto wird auf Wände, Boden, Bett, Schreibtisch projiziert – man steht darin
+    proom.build('zimmer', pano.tex.zimmer);
+    proom.group.position.set(h.x, 0, h.z);
+    proom.visible = true;
+    proom.update();
     room.setPhotoMode(true);
-    // Handy auf den Schreibtisch, Mushaf auf den Nachttisch (Positionen im Foto; anpassbar in einstellungen.json)
-    const z = pano.settings.zimmer || {};
-    room.placeInPhoto({
-      handy: z.handy || { u: 0.315, v: 0.66, s: 0.76 },
-      mushaf: z.mushaf || { u: 0.742, v: 0.598, s: 0.56 },
-    }, h.y, z.drehung || 0);
+    const A = proom.anchors;
+    room.phone.position.copy(proom.local(...A.handy)); room.phone.rotation.set(0, -0.5, 0);
+    room.mushafGroup.position.copy(proom.local(...A.mushaf)); room.mushafGroup.rotation.set(0, 0.2, 0);
+    room.placeFamily(proom);
+    allowWalk = true;
   }
   roomLamp(1, 0);
   room.family.visible = false;
@@ -255,8 +264,15 @@ async function sceneProlog() {
 async function sceneDying() {
   await fadeTo(0x000000, 1, 2.5);
   // Schnitt im Schwarz: er liegt auf dem Bett und schaut zur Decke
-  lieDown('z');
-  placeHead(room.group.localToWorld(room.headOnBed.clone()));
+  allowWalk = false;
+  if (proom.visible) {
+    const d = proom.headDir;                      // Scheitel zeigt zum Kopfende des Bettes
+    rig.rotation.set(Math.PI / 2, Math.atan2(d.x, d.z), 0, 'YXZ');
+    placeHead(proom.world(...proom.anchors.kopfAufBett));
+  } else {
+    lieDown('z');
+    placeHead(room.group.localToWorld(room.headOnBed.clone()));
+  }
   panel.setMode('free'); panel.setDistance(0.7);
   room.family.visible = true;
   veil.frost(); veil.mat.color.set(0xffffff);
@@ -791,6 +807,36 @@ window.addEventListener('resize', () => {
 // Render-Loop
 // ======================================================================
 
+// Gehen: linker Stick (VR) oder W/A/S/D (Bildschirm), in Blickrichtung, begrenzt auf den Raum
+const walkKeys = new Set();
+window.addEventListener('keydown', (e) => walkKeys.add(e.code));
+window.addEventListener('keyup', (e) => walkKeys.delete(e.code));
+function walk(dt) {
+  let fx = 0, fz = 0;
+  const session = renderer.xr.getSession();
+  if (session) {
+    for (const src of session.inputSources) {
+      if (src.handedness !== 'left' || !src.gamepad) continue;
+      const ax = src.gamepad.axes;
+      const sx = ax.length >= 4 ? ax[2] : ax[0] || 0, sy = ax.length >= 4 ? ax[3] : ax[1] || 0;
+      if (Math.abs(sx) > 0.15) fx = sx;
+      if (Math.abs(sy) > 0.15) fz = sy;
+    }
+  } else {
+    if (walkKeys.has('KeyW')) fz = -1; if (walkKeys.has('KeyS')) fz = 1;
+    if (walkKeys.has('KeyA')) fx = -1; if (walkKeys.has('KeyD')) fx = 1;
+  }
+  if (!fx && !fz) return;
+  const e = camera.matrixWorld.elements;
+  const fwd = new THREE.Vector3(-e[8], 0, -e[10]).normalize();
+  const right = new THREE.Vector3(-fwd.z, 0, fwd.x);
+  const move = fwd.multiplyScalar(-fz).add(right.multiplyScalar(fx)).multiplyScalar(0.9 * dt);
+  const h = head().clone().add(move);
+  const target = proom.visible ? proom.clampInside(h) : h;
+  rig.position.x += target.x - head().x;
+  rig.position.z += target.z - head().z;
+}
+
 const clock = new THREE.Clock();
 const SPEED = Number(new URLSearchParams(location.search).get('speed')) || 1; // nur für Tests
 renderer.setAnimationLoop(() => {
@@ -809,17 +855,22 @@ renderer.setAnimationLoop(() => {
 
   if (!renderer.xr.isPresenting) camera.rotation.set(pitch, yaw, 0, 'YXZ');
 
+  if (allowWalk) walk(dt);
+  if (proom.visible) proom.update();
   // Schleier: Grundtrübung, ab und zu ein kurzer klarer Moment
   veil.opacity = veilBase * (1 - veilPulse * Math.pow(Math.max(0, Math.sin(now * 0.45)), 8) * 0.85);
   // Handy auf dem Schreibtisch
   if (room.group.visible) {
     if (phoneOn && now > nextBuzz) {
-      const pp = room.group.localToWorld(room.phonePos.clone());
-      sound.buzz(pp.x, pp.y, pp.z);
-      phoneFlash = 1; nextBuzz = now + 6 + Math.random() * 5;
+      if (room.screen.push()) {
+        const pp = room.group.localToWorld(room.phonePos.clone());
+        sound.buzz(pp.x, pp.y, pp.z);
+        phoneFlash = 1;
+      }
+      nextBuzz = now + 6 + Math.random() * 4;
     }
-    phoneFlash = Math.max(0, phoneFlash - dt * 0.5);
-    room.phoneScreen.material.color.setRGB(0.08 + 0.55 * phoneFlash, 0.1 + 0.65 * phoneFlash, 0.14 + 0.8 * phoneFlash);
+    phoneFlash = Math.max(0, phoneFlash - dt * 0.12);   // bleibt einige Sekunden hell
+    room.phoneScreen.material.color.setScalar(0.08 + 0.92 * Math.min(1, phoneFlash * 1.5));
   }
   clods.update(dt);
   ember.update(now);

@@ -78,7 +78,8 @@ export class Room {
     // Handy als eigene Gruppe (bleibt auch im Fotomodus sichtbar)
     this.phone = new THREE.Group();
     this.phone.add(box(0.075, 0.009, 0.155, new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3 }), 0, 0.0045, 0));
-    this.phoneScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.068, 0.145), new THREE.MeshBasicMaterial({ color: 0x9fc4ff }));
+    this.screen = new PhoneScreen();
+    this.phoneScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.068, 0.145), new THREE.MeshBasicMaterial({ map: this.screen.tex, color: 0x222222 }));
     this.phoneScreen.rotation.x = -Math.PI / 2;
     this.phoneScreen.position.set(0, 0.0095, 0);
     this.phone.add(this.phoneScreen);
@@ -95,12 +96,10 @@ export class Room {
     this.mushafMat = new THREE.MeshStandardMaterial({ color: 0x7d8a72, roughness: 1 }); // staubig: matt, entsättigt, grauer Schleier
     // Mushaf als eigene Gruppe (bleibt auch im Fotomodus sichtbar)
     this.mushafGroup = new THREE.Group();
-    this.mushaf = box(0.17, 0.25, 0.05, this.mushafMat, 0, 0, 0);
+    this.mushaf = buildMushaf();
     this.mushafGroup.add(this.mushaf);
-    this.mushafGroup.position.set(X0 + 0.13, 1.59, -0.45);
+    this.mushafGroup.position.set(X0 + 0.13, 1.47, -0.45);
     g.add(this.mushafGroup);
-    const gold = new THREE.MeshStandardMaterial({ color: 0x9a8455, roughness: 0.8, metalness: 0.3 });
-    this.mushafGroup.add(box(0.171, 0.03, 0.051, gold, 0, 0.07, 0));
     // Schwaches Licht der Nachttischlampe auf dem Mushaf (nur im Fotomodus an)
     this.mushafLight = new THREE.PointLight(0xffd9a8, 0, 1.2, 2);
     this.mushafLight.position.set(0.15, 0.3, 0.1);
@@ -125,8 +124,9 @@ export class Room {
     const robe = new THREE.MeshStandardMaterial({ color: 0x3a3632, roughness: 1 });
     const light = new THREE.MeshStandardMaterial({ color: 0xbdb6a8, roughness: 1 });
     this.family = new THREE.Group();
-    [[-1.25, 0.6, robe, 1.7], [1.25, 1.0, light, 1.62], [-1.2, 2.0, light, 1.55], [1.2, -0.2, robe, 1.75]].forEach(([x, z, m, h]) => {
-      const f = makeFigure(m, h);
+    const scarf = new THREE.MeshStandardMaterial({ color: 0x4a4038, roughness: 1 });
+    [[-1.25, 0.6, robe, 1.72, 'mann'], [1.25, 1.0, scarf, 1.62, 'frau'], [-1.2, 2.0, light, 1.58, 'frau'], [1.2, -0.2, light, 1.76, 'tuch']].forEach(([x, z, m, h, kind]) => {
+      const f = makeFigure(m, h, { kind });
       f.position.set(x, 0, z);
       f.lookAt(0, 0, z);
       this.family.add(f);
@@ -147,6 +147,16 @@ export class Room {
       this.phone.position.copy(this.homes.phone); this.phone.rotation.set(0, 0, 0);
       this.mushafGroup.position.copy(this.homes.mushaf); this.mushafGroup.rotation.set(0, 0, 0);
     }
+  }
+  // Angehörige um das Bett im projizierten Raum stellen (Positionen in w/n des Raums)
+  placeFamily(proom) {
+    const spots = [[2.25, -1.3], [1.5, 1.3], [0.55, -1.25], [2.35, 1.35]];
+    const bed = proom.local(2.0, 0, 0);
+    this.family.children.forEach((f, i) => {
+      const [w, n] = spots[i % spots.length];
+      f.position.copy(proom.local(w, n, 0));
+      f.lookAt(bed.x, 0, bed.z);
+    });
   }
   // Gegenstände passend ins 360°-Foto setzen. Anker: u/v im Foto (0..1), s = Höhe der Fläche im Raum (m).
   // Die Entfernung ergibt sich aus der Kamerahöhe des Fotos (camH); gesetzt wird entlang des Sehstrahls
@@ -436,4 +446,243 @@ export class Panorama {
   set brightness(v) { this.mat.color.setScalar(v); }
   hide() { this.mesh.visible = false; }
   follow(pos) { this.mesh.position.copy(pos); }
+}
+
+// ======================================================================
+// Projizierter Raum: das 360°-Foto wird auf grobe 3D-Flächen des echten Raums projiziert
+// (Wände, Boden, Decke, Bett, Schreibtisch …). So entsteht Tiefe: Kopfbewegung und Gehen
+// verändern die Ansicht wie in einem echten Raum. Maße aus dem Foto ausgemessen.
+// Koordinaten: w = entlang der Bettachse (zum Kopfende +), n = quer (zur Rückwand +), Ursprung
+// unter der Fotokamera. Die Kamera stand CAM_H über dem Boden.
+// ======================================================================
+const ROOM_SPEC = {
+  zimmer: {
+    camH: 1.5, alpha: 26.8,                       // Kamerahöhe (m), Drehung des Raums (Grad)
+    room: { w: [-1.9, 3.15], n: [-1.66, 1.57], h: 2.8 },
+    boxes: [                                       // [w0, w1, n0, n1, y0, y1]
+      { name: 'bett', b: [1.0, 3.1, -0.9, 0.9, 0, 0.55] },
+      { name: 'kopfteil', b: [3.05, 3.15, -0.95, 0.95, 0, 1.15] },
+      { name: 'nachttisch1', b: [2.75, 3.12, -1.42, -0.95, 0, 0.56] },
+      { name: 'nachttisch2', b: [2.75, 3.12, 0.95, 1.42, 0, 0.56] },
+      { name: 'schreibtisch', b: [-1.9, -1.15, -0.55, 1.35, 0, 0.75] },
+      { name: 'sessel', b: [-1.25, -0.55, -1.6, -0.9, 0, 0.8] },
+      { name: 'schrank1', b: [2.6, 3.15, -1.66, -1.0, 0.62, 2.8] },
+      { name: 'schrank2', b: [2.6, 3.15, 1.0, 1.57, 0.62, 2.8] },
+    ],
+    // Ankerpunkte für Gegenstände und Personen (w, n, y)
+    anchors: {
+      handy: [-1.42, 0.25, 0.752],
+      mushaf: [2.93, -1.18, 0.561],
+      kopfAufBett: [2.62, 0.25, 0.72],
+      sitz: [0.0, 0.0],
+    },
+  },
+};
+
+export class ProjectedRoom {
+  constructor(scene) {
+    this.group = new THREE.Group();
+    this.group.visible = false;
+    scene.add(this.group);
+    this.uniforms = {
+      map: { value: null },
+      center: { value: new THREE.Vector3() },
+      rotY: { value: 0 },
+      brightness: { value: 1 },
+    };
+    this.mat = new THREE.ShaderMaterial({
+      uniforms: this.uniforms,
+      side: THREE.DoubleSide,
+      vertexShader: /* glsl */`
+        varying vec3 vWorld;
+        void main() {
+          vec4 w = modelMatrix * vec4(position, 1.0);
+          vWorld = w.xyz;
+          gl_Position = projectionMatrix * viewMatrix * w;
+        }`,
+      fragmentShader: /* glsl */`
+        uniform sampler2D map; uniform vec3 center; uniform float rotY; uniform float brightness;
+        varying vec3 vWorld;
+        const float PI = 3.141592653589793;
+        void main() {
+          vec3 d = normalize(vWorld - center);
+          float c = cos(rotY), s = sin(rotY);
+          d = vec3(c * d.x + s * d.z, d.y, -s * d.x + c * d.z);
+          float th = atan(d.x, -d.z);                 // 0 = vorne (-z), positiv = rechts
+          float u = th / (2.0 * PI) + 0.5;
+          float v = 0.5 - asin(clamp(d.y, -1.0, 1.0)) / PI;
+          vec4 col = texture2D(map, vec2(u, 1.0 - v));
+          gl_FragColor = vec4(col.rgb * brightness, 1.0);
+          #include <colorspace_fragment>
+        }`,
+    });
+    this.spec = null;
+  }
+
+  // (w, n, y) -> lokale Koordinaten der Gruppe
+  local(w, n, y = 0) {
+    const a = (this.spec.alpha * Math.PI) / 180;
+    return new THREE.Vector3(w * Math.cos(a) - n * Math.sin(a), y, w * Math.sin(a) + n * Math.cos(a));
+  }
+  world(w, n, y = 0) { return this.group.localToWorld(this.local(w, n, y)); }
+  // Richtung „zum Kopfende“ in Weltkoordinaten (für das Hinlegen)
+  get headDir() { const a = (this.spec.alpha * Math.PI) / 180; return new THREE.Vector3(Math.cos(a), 0, Math.sin(a)); }
+
+  build(name, texture) {
+    this.group.clear();
+    const S = ROOM_SPEC[name];
+    this.spec = S;
+    texture.generateMipmaps = false;               // keine Naht am Bildrand
+    texture.minFilter = THREE.LinearFilter;
+    texture.needsUpdate = true;
+    this.uniforms.map.value = texture;
+    const a = (S.alpha * Math.PI) / 180;
+    const addBox = (w0, w1, n0, n1, y0, y1, inside) => {
+      const geo = new THREE.BoxGeometry(w1 - w0, y1 - y0, n1 - n0);
+      const m = new THREE.Mesh(geo, this.mat);
+      m.position.copy(this.local((w0 + w1) / 2, (n0 + n1) / 2, (y0 + y1) / 2));
+      m.rotation.y = -a;
+      if (inside) m.material = this.mat; // Innenflächen: DoubleSide genügt
+      this.group.add(m);
+      return m;
+    };
+    const R = S.room;
+    addBox(R.w[0], R.w[1], R.n[0], R.n[1], 0, R.h, true);
+    for (const b of S.boxes) addBox(...b.b, false);
+    this.anchors = S.anchors;
+  }
+
+  // Fotokamera-Position in Weltkoordinaten nachführen (wenn die Gruppe verschoben wurde)
+  update() {
+    if (!this.spec) return;
+    this.uniforms.center.value.copy(this.group.localToWorld(new THREE.Vector3(0, this.spec.camH, 0)));
+    this.uniforms.rotY.value = 0;
+  }
+  set brightness(v) { this.uniforms.brightness.value = v; }
+  set visible(v) { this.group.visible = v; }
+  get visible() { return this.group.visible; }
+  // Liegt ein Punkt (Welt) im Raum? Für das Begrenzen des Gehens.
+  clampInside(p, margin = 0.25) {
+    const l = this.group.worldToLocal(p.clone());
+    const a = (this.spec.alpha * Math.PI) / 180;
+    let w = l.x * Math.cos(a) + l.z * Math.sin(a), n = -l.x * Math.sin(a) + l.z * Math.cos(a);
+    const R = this.spec.room;
+    w = Math.min(R.w[1] - margin, Math.max(R.w[0] + margin, w));
+    n = Math.min(R.n[1] - margin, Math.max(R.n[0] + margin, n));
+    // nicht in Möbel hineinlaufen: aus jedem Möbelrechteck (mit Abstand) zur nächsten Kante schieben
+    for (const b of this.spec.boxes) {
+      const [w0, w1, n0, n1] = b.b;
+      if (w > w0 - margin && w < w1 + margin && n > n0 - margin && n < n1 + margin) {
+        const d = [w - (w0 - margin), (w1 + margin) - w, n - (n0 - margin), (n1 + margin) - n];
+        const k = d.indexOf(Math.min(...d));
+        if (k === 0) w = w0 - margin; else if (k === 1) w = w1 + margin; else if (k === 2) n = n0 - margin; else n = n1 + margin;
+      }
+    }
+    const q = this.world(w, n, 0);
+    return new THREE.Vector3(q.x, p.y, q.z);
+  }
+}
+
+// ======================================================================
+// Ein echter Mushaf: Ledereinband mit Goldrahmen, Seitenblock, Staub. Liegt flach.
+// ======================================================================
+export function buildMushaf() {
+  const W = 0.17, L = 0.245, T = 0.048, cov = 0.004;
+  const g = new THREE.Group();
+  // Einband-Textur
+  const c = document.createElement('canvas'); c.width = 340; c.height = 490;
+  const x = c.getContext('2d');
+  x.fillStyle = '#23402f'; x.fillRect(0, 0, 340, 490);
+  for (let i = 0; i < 2500; i++) { x.fillStyle = `rgba(${Math.random() < 0.5 ? '0,0,0' : '255,255,255'},${Math.random() * 0.05})`; x.fillRect(Math.random() * 340, Math.random() * 490, 2, 2); }
+  x.strokeStyle = '#b8995a'; x.lineWidth = 5; x.strokeRect(22, 22, 296, 446);
+  x.lineWidth = 2; x.strokeRect(34, 34, 272, 422);
+  // Mittelmedaillon (geometrisch, achtzackiger Stern)
+  x.save(); x.translate(170, 245); x.fillStyle = '#b8995a';
+  for (let k = 0; k < 2; k++) { x.rotate(Math.PI / 4); x.fillRect(-46, -46, 92, 92); }
+  x.fillStyle = '#23402f'; x.beginPath(); x.arc(0, 0, 40, 0, Math.PI * 2); x.fill();
+  x.strokeStyle = '#b8995a'; x.lineWidth = 2; x.beginPath(); x.arc(0, 0, 34, 0, Math.PI * 2); x.stroke();
+  x.fillStyle = '#c9ab6a'; x.font = '600 30px "Noto Naskh Arabic", "Amiri", serif'; x.textAlign = 'center'; x.direction = 'rtl';
+  x.fillText('القرآن', 0, 6); x.font = '600 20px "Noto Naskh Arabic", serif'; x.fillText('الكريم', 0, 28);
+  x.restore();
+  // Eckornamente
+  for (const [cx, cy, r] of [[34, 34, 0], [306, 34, 1], [34, 456, 3], [306, 456, 2]]) {
+    x.save(); x.translate(cx, cy); x.rotate((r * Math.PI) / 2); x.fillStyle = '#b8995a';
+    x.beginPath(); x.moveTo(0, 0); x.lineTo(40, 0); x.quadraticCurveTo(14, 14, 0, 40); x.closePath(); x.fill(); x.restore();
+  }
+  // Staub: heller Schleier, an den Rändern dichter
+  const grd = x.createRadialGradient(170, 245, 60, 170, 245, 300);
+  grd.addColorStop(0, 'rgba(200,195,185,0.18)'); grd.addColorStop(1, 'rgba(210,205,195,0.42)');
+  x.fillStyle = grd; x.fillRect(0, 0, 340, 490);
+  for (let i = 0; i < 900; i++) { x.fillStyle = `rgba(225,220,210,${Math.random() * 0.25})`; x.fillRect(Math.random() * 340, Math.random() * 490, 1 + Math.random() * 2, 1); }
+  const coverTex = new THREE.CanvasTexture(c); coverTex.colorSpace = THREE.SRGBColorSpace; coverTex.anisotropy = 4;
+  // Seitenschnitt-Textur
+  const pc = document.createElement('canvas'); pc.width = 8; pc.height = 128;
+  const px = pc.getContext('2d'); px.fillStyle = '#e8dcc2'; px.fillRect(0, 0, 8, 128);
+  for (let i = 0; i < 128; i += 2) { px.fillStyle = `rgba(150,130,100,${0.15 + Math.random() * 0.2})`; px.fillRect(0, i, 8, 1); }
+  const pageTex = new THREE.CanvasTexture(pc); pageTex.colorSpace = THREE.SRGBColorSpace;
+  pageTex.wrapS = pageTex.wrapT = THREE.RepeatWrapping;
+  const leather = new THREE.MeshStandardMaterial({ color: 0x2c4a37, roughness: 0.85 });
+  const coverTop = new THREE.MeshStandardMaterial({ map: coverTex, roughness: 0.8 });
+  const pages = new THREE.MeshStandardMaterial({ map: pageTex, roughness: 0.95 });
+  // Deckel unten und oben (oben mit Prägung), Seitenblock dazwischen, Rücken abgerundet
+  const back = new THREE.Mesh(new THREE.BoxGeometry(W, cov, L), leather); back.position.y = cov / 2;
+  const front = new THREE.Mesh(new THREE.BoxGeometry(W, cov, L), [leather, leather, coverTop, leather, leather, leather]);
+  front.position.y = T - cov / 2;
+  const block = new THREE.Mesh(new THREE.BoxGeometry(W - 0.008, T - 2 * cov, L - 0.008), pages);
+  block.position.set(0.004, T / 2, 0);
+  const spine = new THREE.Mesh(new THREE.CylinderGeometry(T / 2, T / 2, L, 16, 1, false, Math.PI, Math.PI), leather);
+  spine.rotation.x = Math.PI / 2; spine.position.set(-W / 2 + 0.002, T / 2, 0); spine.scale.set(0.35, 1, 1);
+  for (const m of [back, front, block, spine]) { m.castShadow = true; m.receiveShadow = true; g.add(m); }
+  g.rotation.y = 0.35;
+  return g;
+}
+
+// ======================================================================
+// Sperrbildschirm des Handys: Uhrzeit und Benachrichtigungen, die nacheinander eintreffen.
+// ======================================================================
+const NACHRICHTEN = [
+  ['Gruppe „Jungs“', 'Heute Abend noch zocken? Bin ab 0 Uhr online'],
+  ['Gebetszeiten', 'ʿIschāʾ hat begonnen'],
+  ['Video-App', 'Dein Video hat 1.204 neue Aufrufe'],
+  ['Mama', 'Ruf mich bitte an, wenn du Zeit hast.'],
+  ['Gruppe „Jungs“', '5 neue Nachrichten'],
+  ['Verpasster Anruf', 'Mama'],
+];
+export class PhoneScreen {
+  constructor() {
+    this.c = document.createElement('canvas'); this.c.width = 340; this.c.height = 725;
+    this.x = this.c.getContext('2d');
+    this.tex = new THREE.CanvasTexture(this.c); this.tex.colorSpace = THREE.SRGBColorSpace; this.tex.anisotropy = 4;
+    this.list = [];
+    this.next = 0;
+    this.draw();
+  }
+  push() {
+    if (this.next >= NACHRICHTEN.length) return false;
+    this.list.unshift(NACHRICHTEN[this.next++]);
+    this.draw();
+    return true;
+  }
+  draw() {
+    const x = this.x, W = 340, H = 725;
+    const grd = x.createLinearGradient(0, 0, 0, H);
+    grd.addColorStop(0, '#1c2b46'); grd.addColorStop(1, '#0b1020');
+    x.fillStyle = grd; x.fillRect(0, 0, W, H);
+    x.fillStyle = '#ffffff'; x.textAlign = 'center';
+    x.font = '300 96px system-ui, sans-serif'; x.fillText('23:41', W / 2, 150);
+    x.font = '400 22px system-ui, sans-serif'; x.fillStyle = 'rgba(255,255,255,0.8)'; x.fillText('Donnerstag, 26. November', W / 2, 186);
+    let y = 230;
+    for (const [app, text] of this.list.slice(0, 5)) {
+      x.fillStyle = 'rgba(255,255,255,0.16)';
+      x.beginPath(); x.roundRect(16, y, W - 32, 82, 18); x.fill();
+      x.textAlign = 'left'; x.fillStyle = '#ffffff';
+      x.font = '600 19px system-ui, sans-serif'; x.fillText(app, 32, y + 30);
+      x.font = '400 18px system-ui, sans-serif'; x.fillStyle = 'rgba(255,255,255,0.88)';
+      x.fillText(text.length > 30 ? text.slice(0, 29) + '…' : text, 32, y + 58);
+      x.textAlign = 'right'; x.fillStyle = 'rgba(255,255,255,0.6)'; x.font = '400 15px system-ui, sans-serif';
+      x.fillText('jetzt', W - 32, y + 30);
+      y += 94;
+    }
+    this.tex.needsUpdate = true;
+  }
 }
