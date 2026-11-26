@@ -93,7 +93,11 @@
 <div id="hud">Ziehen: umsehen · Klick/Leertaste: weiter · K halten: überspringen</div>
 
 <script type="importmap">
-{ "imports": { "three": "./lib/three.module.min.js" } }
+{ "imports": {
+  "three": "./lib/three-0.180/three.module.min.js",
+  "three/addons/": "./lib/three-0.180/addons/",
+  "@sparkjsdev/spark": "./lib/spark-2.4.0/spark.module.min.js"
+} }
 </script>
 <script type="module" src="js/main.js"></script>
 </body>
