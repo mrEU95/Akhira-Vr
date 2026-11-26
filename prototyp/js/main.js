@@ -6,6 +6,7 @@ import {
   Sky, Grave, Lahd, Clods, LightPresences, DarkPresences, LightGate, EmberOpening,
   Companion, Cemetery,
 } from './world.js';
+import { Room, Mosque, Veil, DescendingLights } from './scenes-life.js';
 
 // ======================================================================
 // Grundgerüst
@@ -62,6 +63,13 @@ const companionA = new Companion(scene, 'good');
 const companionB = new Companion(scene, 'bad');
 const cemetery = new Cemetery(scene);
 const panel = new TextPanel(scene);
+const room = new Room(scene);
+const mosque = new Mosque(scene);
+const veil = new Veil(camera);
+const descLights = new DescendingLights(scene);
+let veilBase = 0;     // Grundtrübung des Schleiers
+let veilPulse = 0;    // 0..1: ab und zu kurz klar (Kampf gegen das Wegdämmern)
+let phoneOn = false, nextBuzz = 0, phoneFlash = 0;
 
 // Heller, weicher Boden für die Weite des Grabes (Weg A)
 const softFloorMat = new THREE.MeshStandardMaterial({ color: 0xf0e4c9, roughness: 1, transparent: true, opacity: 0 });
@@ -147,6 +155,7 @@ function setDay(level) {
 function resetWorld() {
   clods.clear();
   grave.reset();
+  grave.group.visible = false; // die Szenen im Grab blenden es mit grave.fit() wieder ein
   lightPresences.level = 0;
   darkPresences.level = 0;
   gate.level = 0;
@@ -166,6 +175,230 @@ function resetWorld() {
   softFloorMat.opacity = 0;
   residual.intensity = 0;
   rig.position.set(0, 0, 0);
+  rig.rotation.set(0, 0, 0);
+  room.visible = false; room.family.visible = false;
+  mosque.visible = false;
+  veilBase = 0; veilPulse = 0; veil.opacity = 0;
+  descLights.level = 0; descLights.headLevel = 0;
+  panel.setMode('yaw');
+  phoneOn = false;
+  if (sound.ctx) {
+    sound.muffle(0, 0.1); sound.worldLevel(1, 0.1); sound.heartbeat(0);
+    sound.setLevel('breath', 0, 0.5); sound.setLevel('room', 0, 0.5);
+  }
+}
+
+// Liegen: Blick nach oben. viewUp = Richtung, in die der Scheitel zeigt (+z oder +x).
+function lieDown(viewUp = 'z') {
+  if (viewUp === 'x') rig.rotation.set(Math.PI / 2, Math.PI / 2, 0, 'YXZ');
+  else rig.rotation.set(Math.PI / 2, 0, 0, 'YXZ');
+}
+// Den Kopf des Zuschauers genau an eine Stelle der Welt setzen
+function placeHead(target) {
+  rig.updateMatrixWorld(true);
+  const h = head().clone();
+  rig.position.add(target.clone().sub(h));
+  rig.updateMatrixWorld(true);
+}
+// Punkt neben dem rechten Ohr (für Flüstern)
+function besideEar(dist = 0.25) {
+  const e = camera.matrixWorld.elements;
+  return head().clone().add(new THREE.Vector3(e[0], e[1], e[2]).multiplyScalar(dist));
+}
+
+// ======================================================================
+// PROLOG – das Zimmer
+// ======================================================================
+async function sceneProlog() {
+  resetWorld();
+  await fadeTo(0x000000, 1, 0.01);
+  const h = head();
+  room.group.position.set(h.x, 0, h.z);
+  room.visible = true;
+  room.setLamp(1, 0);
+  room.family.visible = false;
+  sound.worldLevel(1, 0.1);
+  sound.setLevel('room', 0.6, 2);
+  phoneOn = true; nextBuzz = now + 4;
+  await fadeTo(0x000000, 0, 3);
+  await wait(8);
+  await say(TX.prologTitel, 1);
+  await wait(5);
+  await say(TX.jedeSeele, 1);
+  await wait(3);
+  phoneOn = false; // das Handy hört auf zu vibrieren
+  await tween(6, (t) => room.setLamp(1 - 0.2 * t, t));
+  await say(TX.zerstoerer, 1);
+  await wait(2);
+}
+
+// ======================================================================
+// P.3–P.5 – Die Trunkenheit des Todes: die Welt verschwimmt, das Verborgene wird scharf
+// ======================================================================
+async function sceneDying() {
+  await fadeTo(0x000000, 1, 2.5);
+  // Schnitt im Schwarz: er liegt auf dem Bett und schaut zur Decke
+  lieDown('z');
+  placeHead(room.group.localToWorld(room.headOnBed.clone()));
+  panel.setMode('free'); panel.setDistance(0.7);
+  room.family.visible = true;
+  veil.frost(); veil.mat.color.set(0xffffff);
+  sound.setLevel('breath', 0.45, 4);
+  sound.heartbeat(76, 0.45);
+  await fadeTo(0x000000, 0, 3);
+
+  // Die Welt verschwimmt
+  tween(14, (t) => { veilBase = 0.62 * t; room.setLamp(0.8 - 0.3 * t, 1); }, (x) => x);
+  sound.muffle(0.75, 14);
+  veilPulse = 1;
+  await wait(4);
+  await say(TX.sakra, 1);
+  await say(TX.sakaratProphet, 1);
+  sound.heartbeat(58, 0.5);
+  await say(TX.taraqi, 1);
+
+  // P.4 – Talqīn am Bett: klar und nah durch das Dumpfe hindurch
+  for (let i = 0; i < 2; i++) {
+    const ear = besideEar();
+    panel.show(TX.talqin);
+    const played = await sound.playFile('talqin.mp3', ear.x, ear.y, ear.z, 1);
+    if (!played) { sound.whisper(ear.x, ear.y, ear.z); await wait(3.2, true); }
+    panel.hide();
+    await wait(1.6);
+  }
+  await say(TX.talqinHad, 0.5);
+  await say(TX.letztesWort, 0.5);
+  sound.heartbeat(44, 0.5);
+  await say(TX.hulqum, 1);
+
+  // P.5 – Alles bricht ab. Stille. Von oben wird etwas gestochen scharf.
+  sound.heartbeat(0);
+  sound.setLevel('breath', 0, 0.3);
+  sound.worldLevel(0, 0.3);
+  veilPulse = 0;
+  // Die Welt tritt zurück: der Schleier wird grau und dunkel, damit das Licht von oben hervortritt
+  const vc = veil.mat.color.clone(), dark = new THREE.Color(0x4a4844);
+  await tween(4, (t) => { veil.mat.color.copy(vc).lerp(dark, t); veilBase = 0.62 + 0.2 * t; room.setLamp(0.5 * (1 - t), 1); });
+  descLights.group.position.copy(head());
+  descLights.group.rotation.set(0, 0, 0);
+  descLights.descend(0);
+  const fall = tween(24, (t) => { descLights.descend(t); descLights.level = Math.min(1, t * 1.6); }, (x) => 1 - Math.pow(1 - x, 3));
+  await wait(3);
+  await say(TX.ghita, 2);
+  await fall;
+}
+
+// ======================================================================
+// 1A (Kurzfassung) – der gläubige Diener stirbt
+// ======================================================================
+async function sceneDeathA() {
+  await say(TX.abdMumin, 1);
+  await say(TX.engelHerab, 1);
+  // Die eine, klarere Präsenz am Kopfende (jenseits des Scheitels)
+  descLights.head.position.set(0, 0.8, 0.75);
+  await tween(4, (t) => { descLights.headLevel = t; });
+  await say(TX.malakA, 1);
+  await say(TX.salamA, 1);
+  // Die Seele fließt hinaus – der Blick folgt ihr nach oben, alles wird weiß
+  sound.drip();
+  const y0 = rig.position.y;
+  const vc = veil.mat.color.clone(), white = new THREE.Color(0xffffff);
+  const rise = tween(16, (t) => {
+    rig.position.y = y0 + 1.4 * t;
+    veil.mat.color.copy(vc).lerp(white, t);   // alles wird weiß – das Leichentuch aus dem Paradies
+    veilBase = 0.82 + 0.15 * t;
+  }, (x) => x);
+  await say(TX.blickFolgt, 1);
+  await say(TX.fliesst, 1);
+  await rise;
+  await say(TX.mutmainna, 1);
+  await fadeTo(0xffffff, 1, 3);
+  await fadeTo(0x000000, 1, 3);
+  sound.allOff(1);
+  resetWorld();
+  await say(TX.aufstiegHinweis, 0);
+}
+
+// ======================================================================
+// 3.00 – Waschung, Leichentuch, Totengebet, Hinaustragen
+// ======================================================================
+async function sceneJanaza() {
+  resetWorld();
+  await fadeTo(0x000000, 1, 0.01);
+  await say(TX.janazaTitel, 1);
+  sound.water(6);            // Waschung nur als Ton (Sicht des Toten ist schwach überliefert)
+  await say(TX.kafan, 1);
+  await wait(1);
+
+  // Auf der Bahre vor der Gebetsnische, Blick nach oben, durch das Leichentuch
+  mosque.group.position.set(0, 0, 0);
+  mosque.visible = true;
+  mosque.setLight(1);
+  lieDown('x');
+  placeHead(mosque.group.localToWorld(mosque.headOnBier.clone()));
+  panel.setMode('free'); panel.setDistance(0.8);
+  veil.cloth(); veil.mat.color.set(0xffffff);
+  veilBase = 0.5; veilPulse = 0;
+  await fadeTo(0x000000, 0, 4);
+  await wait(3);
+
+  // Die Reihen füllen sich hinter ihm – dann Stille
+  const hp = head().clone();
+  sound.crowd(12, { x: hp.x, y: 0, z: hp.z });
+  await wait(13);
+  await wait(3);
+
+  // Vier Takbīr – der Imam unsichtbar, nur die Stimme
+  const imam = { x: hp.x + 0.3, y: 1.7, z: hp.z + 0.8 };
+  for (let i = 0; i < 4; i++) {
+    panel.show(TX.takbir);
+    const ok = await sound.playFile('takbir.mp3', imam.x, imam.y, imam.z, 1);
+    if (!ok) await wait(2.6, true);
+    panel.hide();
+    await wait(1.5);
+    if (i === 0) await say(TX.vierzig, 1);
+    else await wait(5);
+  }
+  await say(TX.salamJanaza, 0);
+
+  // Die Bahre wird angehoben und hinausgetragen
+  const s0 = rig.position.clone();
+  await tween(3, (t) => { rig.position.y = s0.y + 0.55 * t; });
+  const door = mosque.group.localToWorld(mosque.doorPos.clone());
+  const s1 = rig.position.clone();
+  const dist = door.z - head().z + 0.6;
+  const carry = tween(16, (t) => {
+    rig.position.z = s1.z + dist * t;
+    rig.position.y = s1.y + 0.012 * Math.sin(now * 3.2);
+  }, (x) => x);
+  await say(TX.asriu, 1);
+  await carry;
+
+  // Draußen: Himmel und Baumkronen ziehen vorüber
+  await fadeTo(0xffffff, 1, 1.5);
+  mosque.visible = false;
+  sky.set('#9fb2c6', '#e9e6de'); sky.opacity = 1;
+  hemi.color.set(0xdfe6ee); hemi.groundColor.set(0x4a4232); hemi.intensity = 1.2;
+  sun.position.set(head().x - 20, 30, head().z + 10);
+  sun.target.position.set(head().x, 0, head().z);
+  sun.intensity = 1.4;
+  cemetery.reset(); cemetery.walking = false;
+  cemetery.group.position.set(head().x, 0, head().z + 4);
+  cemetery.group.visible = true;
+  sound.worldLevel(1, 0.5);
+  sound.setLevel('wind', 0.2, 2);
+  const s2 = rig.position.clone();
+  const walk = tween(22, (t) => {
+    rig.position.z = s2.z + 7 * t;
+    rig.position.y = s2.y + 0.012 * Math.sin(now * 3.2);
+  }, (x) => x);
+  await fadeTo(0xffffff, 0, 1.5);
+  await wait(2);
+  await say(TX.qaddimuni, 1);
+  cemetery.scatter(sound);   // alles hört es – nur der Mensch nicht
+  await walk;
+  await fadeTo(0x000000, 1, 3);
+  sound.allOff(1);
 }
 
 // ======================================================================
@@ -471,6 +704,12 @@ let running = false;
 
 async function run(chapter) {
   running = true;
+  if (chapter === 'all' || chapter === 'prolog') {
+    await sceneProlog();
+    await sceneDying();
+    await sceneDeathA();
+  }
+  if (chapter === 'all' || chapter === 'janaza') await sceneJanaza();
   if (chapter === 'all' || chapter === 'burial') {
     await sceneIntro();
     await sceneBurial();
@@ -546,6 +785,18 @@ renderer.setAnimationLoop(() => {
 
   if (!renderer.xr.isPresenting) camera.rotation.set(pitch, yaw, 0, 'YXZ');
 
+  // Schleier: Grundtrübung, ab und zu ein kurzer klarer Moment
+  veil.opacity = veilBase * (1 - veilPulse * Math.pow(Math.max(0, Math.sin(now * 0.45)), 8) * 0.85);
+  // Handy auf dem Schreibtisch
+  if (room.group.visible) {
+    if (phoneOn && now > nextBuzz) {
+      const pp = room.group.localToWorld(room.phonePos.clone());
+      sound.buzz(pp.x, pp.y, pp.z);
+      phoneFlash = 1; nextBuzz = now + 6 + Math.random() * 5;
+    }
+    phoneFlash = Math.max(0, phoneFlash - dt * 0.5);
+    room.phoneScreen.material.color.setRGB(0.08 + 0.55 * phoneFlash, 0.1 + 0.65 * phoneFlash, 0.14 + 0.8 * phoneFlash);
+  }
   clods.update(dt);
   ember.update(now);
   cemetery.update(dt, now);
@@ -571,6 +822,7 @@ async function prepare() {
   ttsEnabled = document.getElementById('tts').checked;
   sound.init();
   await sound.resume();
+  await Promise.all([sound.loadFile('talqin.mp3'), sound.loadFile('takbir.mp3')]); // eigene Aufnahmen, falls vorhanden
   try { await document.fonts.load('600 40px "Noto Naskh Arabic"'); } catch (e) { /* Systemschrift */ }
   // Kurzer stiller Ton, damit Safari/Quest Audio freigeben
   if (ttsEnabled && window.speechSynthesis) window.speechSynthesis.speak(new SpeechSynthesisUtterance(' '));

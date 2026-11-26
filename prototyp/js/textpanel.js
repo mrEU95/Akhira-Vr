@@ -124,6 +124,25 @@ export class TextPanel {
 
   hide() { this.targetOpacity = 0; }
 
+  setMode(mode) { this.mode = mode; this.dir = null; this.yaw = null; if (mode !== 'free') this.mesh.up.set(0, 1, 0); }
+
+  _updateFree(camera, dt) {
+    camera.getWorldPosition(this._tmp);
+    const e = camera.matrixWorld.elements;
+    const fwd = new THREE.Vector3(-e[8], -e[9], -e[10]).normalize();
+    const up = new THREE.Vector3(e[4], e[5], e[6]).normalize();
+    if (!this.dir) this.dir = fwd.clone();
+    const ang = this.dir.angleTo(fwd);
+    if (ang > 0.45 || this._following) {
+      this._following = ang > 0.05;
+      this.dir.lerp(fwd, Math.min(1, dt * 2.5)).normalize();
+    }
+    const p = this._tmp;
+    this.mesh.position.copy(p).addScaledVector(this.dir, this.distance).addScaledVector(up, -0.05);
+    this.mesh.up.copy(up);
+    this.mesh.lookAt(p);
+  }
+
   // Abstand zur Tafel; die Größe wird mitskaliert, damit sie gleich groß erscheint
   setDistance(d) {
     this.distance = d;
@@ -136,6 +155,8 @@ export class TextPanel {
     this.mat.opacity += (this.targetOpacity - this.mat.opacity) * k;
     if (this.mat.opacity < 0.01 && this.targetOpacity === 0) { this.mesh.visible = false; }
 
+    // Liegend: Tafel folgt der Blickrichtung in alle Richtungen (auch nach oben)
+    if (this.mode === 'free') { this._updateFree(camera, dt); return; }
     // Kopfposition und Blickrichtung (nur horizontal)
     camera.getWorldPosition(this._tmp);
     const e = camera.matrixWorld.elements;

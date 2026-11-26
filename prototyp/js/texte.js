@@ -7,6 +7,116 @@
 const BARA = 'Abu Dawud 4753 · Ahmad 18534';
 
 export const TX = {
+  // ======================= PROLOG + STERBEN =======================
+  prologTitel: { style: 'title', ar: 'سَكْرَةُ الْمَوْتِ', de: 'Prolog · Die Trunkenheit des Todes' },
+  jedeSeele: {
+    ar: 'كُلُّ نَفْسٍ ذَائِقَةُ الْمَوْتِ ۗ وَإِنَّمَا تُوَفَّوْنَ أُجُورَكُمْ يَوْمَ الْقِيَامَةِ',
+    de: '„Jede Seele wird den Tod kosten. Und euer Lohn wird euch erst am Tag der Auferstehung voll ausbezahlt.“',
+    src: 'Āl ʿImrān 3:185',
+  },
+  zerstoerer: {
+    de: 'Der Gesandte Allahs ﷺ sagte: „Gedenkt oft des Zerstörers der Genüsse.“ – gemeint ist der Tod.',
+    src: 'Tirmidhi 2307 (hasan)',
+  },
+  sakra: {
+    ar: 'وَجَاءَتْ سَكْرَةُ الْمَوْتِ بِالْحَقِّ ۖ ذَٰلِكَ مَا كُنتَ مِنْهُ تَحِيدُ',
+    de: '„Und die Trunkenheit des Todes kommt mit der Wahrheit. Das ist es, dem du immer ausweichen wolltest.“',
+    src: 'Qāf 50:19',
+  },
+  sakaratProphet: {
+    ar: 'لَا إِلَهَ إِلَّا اللَّهُ، إِنَّ لِلْمَوْتِ سَكَرَاتٍ',
+    de: 'In seiner Todesstunde tauchte der Gesandte Allahs ﷺ seine Hände in ein Gefäß mit Wasser, strich sich über das Gesicht und sagte: „Lā ilāha illā Llāh – der Tod hat wahrlich seine Trunkenheiten.“',
+    src: 'Bukhari 6510',
+  },
+  taraqi: {
+    ar: 'كَلَّا إِذَا بَلَغَتِ التَّرَاقِيَ ﴿٢٦﴾ وَقِيلَ مَنْ ۜ رَاقٍ ﴿٢٧﴾ وَظَنَّ أَنَّهُ الْفِرَاقُ ﴿٢٨﴾ وَالْتَفَّتِ السَّاقُ بِالسَّاقِ ﴿٢٩﴾ إِلَىٰ رَبِّكَ يَوْمَئِذٍ الْمَسَاقُ ﴿٣٠﴾',
+    de: '„Keineswegs! Wenn sie die Schlüsselbeine erreicht und gesagt wird: ‚Wer kann ihn noch heilen?‘, und er überzeugt ist, dass es der Abschied ist, und sich Bein an Bein schmiegt – zu deinem Herrn wird an jenem Tag das Treiben sein.“',
+    src: 'Al-Qiyāma 75:26–30',
+  },
+  talqin: { style: 'whisper', ar: 'لَا إِلَهَ إِلَّا اللَّهُ', de: '„Lā ilāha illā Llāh …“' },
+  talqinHad: {
+    ar: 'لَقِّنُوا مَوْتَاكُمْ لَا إِلَهَ إِلَّا اللَّهُ',
+    de: 'Der Gesandte Allahs ﷺ sagte: „Sprecht euren Sterbenden ‚Lā ilāha illā Llāh‘ vor.“',
+    src: 'Muslim 916',
+  },
+  letztesWort: {
+    ar: 'مَنْ كَانَ آخِرُ كَلَامِهِ لَا إِلَهَ إِلَّا اللَّهُ دَخَلَ الْجَنَّةَ',
+    de: '„Wessen letztes Wort ‚Lā ilāha illā Llāh‘ ist, der geht ins Paradies ein.“',
+    src: 'Abu Dawud 3116',
+  },
+  hulqum: {
+    ar: 'فَلَوْلَا إِذَا بَلَغَتِ الْحُلْقُومَ ﴿٨٣﴾ وَأَنتُمْ حِينَئِذٍ تَنظُرُونَ ﴿٨٤﴾ وَنَحْنُ أَقْرَبُ إِلَيْهِ مِنكُمْ وَلَٰكِن لَّا تُبْصِرُونَ ﴿٨٥﴾',
+    de: '„Wenn sie doch – wenn sie die Kehle erreicht und ihr in diesem Augenblick zuschaut – Wir sind ihm näher als ihr, doch ihr seht es nicht.“',
+    src: 'Al-Wāqiʿa 56:83–85',
+  },
+  ghita: {
+    ar: 'لَّقَدْ كُنتَ فِي غَفْلَةٍ مِّنْ هَٰذَا فَكَشَفْنَا عَنكَ غِطَاءَكَ فَبَصَرُكَ الْيَوْمَ حَدِيدٌ',
+    de: '„Du warst dessen gegenüber achtlos. Nun haben Wir dir deine Hülle weggenommen, und so ist dein Blick heute scharf.“',
+    src: 'Qāf 50:22',
+  },
+  abdMumin: {
+    style: 'title',
+    ar: 'إِنَّ الْعَبْدَ الْمُؤْمِنَ إِذَا كَانَ فِي انْقِطَاعٍ مِنَ الدُّنْيَا وَإِقْبَالٍ مِنَ الْآخِرَةِ…',
+    de: '„Wenn der gläubige Diener sich von der Welt löst und dem Jenseits zuwendet …“',
+  },
+  engelHerab: {
+    de: 'Der Gesandte Allahs ﷺ sagte: „Es steigen Engel vom Himmel zu ihm herab, mit weißen Gesichtern, als wären ihre Gesichter die Sonne. Bei ihnen ist ein Leichentuch aus dem Paradies und Duft aus dem Paradies. Sie setzen sich zu ihm, so weit das Auge reicht.“',
+    src: BARA,
+  },
+  malakA: {
+    ar: 'يَا أَيَّتُهَا النَّفْسُ الطَّيِّبَةُ، اخْرُجِي إِلَى مَغْفِرَةٍ مِنَ اللَّهِ وَرِضْوَانٍ',
+    de: '„Dann kommt der Engel des Todes, setzt sich an sein Kopfende und sagt: ‚O gute Seele, komm heraus zu Vergebung von Allah und Wohlgefallen.‘“',
+    src: BARA,
+  },
+  salamA: {
+    ar: 'الَّذِينَ تَتَوَفَّاهُمُ الْمَلَائِكَةُ طَيِّبِينَ ۙ يَقُولُونَ سَلَامٌ عَلَيْكُمُ ادْخُلُوا الْجَنَّةَ بِمَا كُنتُمْ تَعْمَلُونَ',
+    de: '„Diejenigen, die die Engel abberufen, während sie gut sind; sie sagen: ‚Friede sei mit euch! Tretet ins Paradies ein für das, was ihr zu tun pflegtet.‘“',
+    src: 'An-Naḥl 16:32',
+  },
+  blickFolgt: {
+    style: 'whisper',
+    ar: 'إِنَّ الرُّوحَ إِذَا قُبِضَ تَبِعَهُ الْبَصَرُ',
+    de: '„Wenn die Seele genommen wird, folgt ihr der Blick.“',
+    src: 'Muslim 920',
+  },
+  fliesst: {
+    de: '„Da tritt sie heraus und fließt, wie der Tropfen aus der Öffnung des Wasserschlauchs fließt … und es strömt von ihr aus wie der beste Duft von Moschus auf dem Antlitz der Erde.“',
+    src: BARA,
+  },
+  mutmainna: {
+    ar: 'يَا أَيَّتُهَا النَّفْسُ الْمُطْمَئِنَّةُ ﴿٢٧﴾ ارْجِعِي إِلَىٰ رَبِّكِ رَاضِيَةً مَّرْضِيَّةً ﴿٢٨﴾ فَادْخُلِي فِي عِبَادِي ﴿٢٩﴾ وَادْخُلِي جَنَّتِي ﴿٣٠﴾',
+    de: '„O du ruhige Seele, kehre zurück zu deinem Herrn, zufrieden und mit Wohlgefallen aufgenommen. Tritt ein unter Meine Diener, und tritt ein in Mein Paradies.“',
+    src: 'Al-Fajr 89:27–30',
+  },
+  aufstiegHinweis: {
+    style: 'hint',
+    de: 'Im Prototyp folgt hier der Sprung zum Totengebet.\nWeg B beim Sterben und der Aufstieg durch die Himmel (Akt II) kommen in der fertigen Fassung.',
+  },
+
+  // ======================= TOTENGEBET =======================
+  janazaTitel: { style: 'title', ar: 'صَلَاةُ الْجَنَازَةِ', de: 'Das Totengebet' },
+  kafan: {
+    ar: 'الْبَسُوا مِنْ ثِيَابِكُمُ الْبَيَاضَ فَإِنَّهَا مِنْ خَيْرِ ثِيَابِكُمْ، وَكَفِّنُوا فِيهَا مَوْتَاكُمْ',
+    de: 'Sie waschen ihn und hüllen ihn in Weiß. Der Gesandte Allahs ﷺ sagte: „Tragt von euren Kleidern die weißen, denn sie gehören zu euren besten Kleidern, und hüllt eure Toten darin ein.“',
+    src: 'Tirmidhi 994 · Abu Dawud 3878',
+  },
+  takbir: { style: 'answer', ar: 'اللَّهُ أَكْبَرُ', de: '„Allāhu akbar“' },
+  vierzig: {
+    ar: 'مَا مِنْ رَجُلٍ مُسْلِمٍ يَمُوتُ فَيَقُومُ عَلَى جَنَازَتِهِ أَرْبَعُونَ رَجُلًا لَا يُشْرِكُونَ بِاللَّهِ شَيْئًا إِلَّا شَفَّعَهُمُ اللَّهُ فِيهِ',
+    de: 'Der Gesandte Allahs ﷺ sagte: „Es gibt keinen muslimischen Mann, der stirbt und für dessen Totengebet vierzig Männer stehen, die Allah nichts beigesellen, ohne dass Allah ihre Fürsprache für ihn annimmt.“',
+    src: 'Muslim 948',
+  },
+  salamJanaza: { style: 'answer', ar: 'السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ', de: '„As-salāmu ʿalaikum wa raḥmatu Llāh“' },
+  asriu: {
+    de: 'Der Gesandte Allahs ﷺ sagte: „Beeilt euch mit dem Toten. Ist er rechtschaffen, so ist es Gutes, zu dem ihr ihn vorausschickt. Ist er es nicht, so ist es Übles, das ihr von euren Nacken ablegt.“',
+    src: 'Bukhari 1315',
+  },
+  qaddimuni: {
+    ar: 'فَإِنْ كَانَتْ صَالِحَةً قَالَتْ: قَدِّمُونِي قَدِّمُونِي، وَإِنْ كَانَتْ غَيْرَ صَالِحَةٍ قَالَتْ: يَا وَيْلَهَا، أَيْنَ يَذْهَبُونَ بِهَا؟',
+    de: '„Wenn die Männer den Toten auf ihre Schultern nehmen: War er rechtschaffen, sagt er: ‚Bringt mich voran! Bringt mich voran!‘ War er es nicht, sagt er: ‚Wehe ihm! Wohin bringt ihr ihn?‘ Seine Stimme hört alles außer dem Menschen – würde der Mensch sie hören, er fiele bewusstlos nieder.“',
+    src: 'Bukhari 1316',
+  },
+
   // ---------- Einstieg ----------
   aktTitel: {
     style: 'title',

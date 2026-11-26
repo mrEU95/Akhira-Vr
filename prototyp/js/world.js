@@ -125,7 +125,9 @@ function tex(name, srgb) {
 }
 
 // Eigenes Material je Fläche, damit die Körnung zur Flächengröße passt (repeat je Fläche)
+const TILE = { labin: 0.55, wood: 1.6, carpet: [5.6, 1.25], plaster: 2.0 }; // Meter pro Kachel (x, y)
 export function pbrMaterial(kind, opts = {}) {
+  const { tile, ...rest } = opts;
   const maps = {
     map: tex(kind + '_color', true),
     normalMap: tex(kind + '_normal', false),
@@ -133,14 +135,15 @@ export function pbrMaterial(kind, opts = {}) {
   if (kind !== 'grass') maps.roughnessMap = tex(kind + '_rough', false);
   const m = new THREE.MeshStandardMaterial({
     ...maps, roughness: 1, metalness: 0, side: THREE.DoubleSide,
-    normalScale: new THREE.Vector2(1.2, 1.2), ...opts,
+    normalScale: new THREE.Vector2(1.2, 1.2), ...rest,
   });
-  m.userData.tile = kind === 'labin' ? 0.55 : 1.1; // Meter pro Kachel
+  m.userData.tile = tile || TILE[kind] || 1.1;
   return m;
 }
-function setRepeat(m, w, h) {
+export function setRepeat(m, w, h) {
   const t = m.userData.tile || 1;
-  for (const k of ['map', 'normalMap', 'roughnessMap']) if (m[k]) m[k].repeat.set(Math.max(0.05, w / t), Math.max(0.05, h / t));
+  const tx = Array.isArray(t) ? t[0] : t, ty = Array.isArray(t) ? t[1] : t;
+  for (const k of ['map', 'normalMap', 'roughnessMap']) if (m[k]) m[k].repeat.set(Math.max(0.05, w / tx), Math.max(0.05, h / ty));
 }
 
 // Standardmaße der Lahd (Nische) relativ zum Kopf; h/eye werden in fit() an die Kopfhöhe angepasst

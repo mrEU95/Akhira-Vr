@@ -1,0 +1,6 @@
+Eigene Aufnahmen (optional) – einfach als MP3 mit genau diesem Namen hier ablegen:
+
+  talqin.mp3   leises Flüstern „Lā ilāha illā Llāh“ (2–3 Mal), nah am Mikrofon
+  takbir.mp3   ein einzelnes „Allāhu akbar“ des Imams beim Totengebet
+
+Fehlt eine Datei, zeigt der Prototyp stattdessen den Text und spielt einen Platzhalter-Klang.

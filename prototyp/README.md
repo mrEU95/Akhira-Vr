@@ -7,12 +7,15 @@ Gebaut mit three.js (lokal in `lib/`) und WebXR. Alle Klänge werden zur Laufzei
 
 | Abschnitt | Szenen aus dem Drehbuch | Was passiert |
 |---|---|---|
+| Prolog | P.1–P.2 | Ein gewöhnliches Zimmer am Abend: Handy vibriert, Tasse, verstaubter Mushaf im Regal, Fenster zur Stadt |
+| Sterben | P.3–P.5, 1A (kurz) | Liegend: die Welt verschwimmt wie Milchglas, Ton wird dumpf, Herzschlag und Atem; gesichtslose Angehörige; Talqīn am Ohr; dann bricht alles ab, die Welt wird grau – und von oben senken sich gestochen scharfe Lichter herab (50:22). Weg A: Präsenz am Kopfende, die Seele fließt hinaus, alles wird weiß |
+| Totengebet | 3.00 | Wasserrauschen (Waschung nur als Ton), dann auf der Bahre im Gebetsraum: Blick durch das Leichentuch zur Kuppel, die Reihen füllen sich, vier Takbīr, Hinaustragen unter den Himmel, die Vögel fliegen auf |
 | Beerdigung | 3.0 | Blick aus der Lahd-Nische in den Graben, gesichtslose Trauernde am Rand, Lehmziegel werden Reihe für Reihe gesetzt (Muslim 966), Erde fällt dumpf auf die Ziegel, Dunkelheit, die Schritte entfernen sich, Stille |
 | Weg A | 3A – 3A.3 | Aufsetzen, zwei Präsenzen als Licht ohne Quelle, Befragung, das Grab weitet sich bis zum Horizont, Tor aus Licht, der Gefährte (gute Taten) |
 | Übergang | – | Grau, Atemzug, „Und der ungläubige Diener …“ |
 | Weg B | 3B – 3B.4 | Zwei Flächen tieferer Dunkelheit, „Hāh hāh, lā adrī“, Öffnung zur Glut, das Grab wird eng (überspringbar), der Gefährte (schlechte Taten), an der Oberfläche fliegen die Vögel auf, aber der Mensch hört nichts |
 
-Dauer: ca. 10 Minuten für den ganzen Akt. Abschnitte lassen sich auf der Startseite einzeln wählen.
+Dauer: ca. 22 Minuten am Stück. Abschnitte lassen sich auf der Startseite einzeln wählen.
 
 ## Steuerung
 
@@ -73,6 +76,15 @@ Steuerung in VR: linker Stick gehen, rechter Stick drehen (30°-Schritte) und H�
 
 Technik: three.js 0.180 und Spark 2.4.0 (`lib/three-0.180`, `lib/spark-2.4.0`, beide MIT-Lizenz). Antialiasing ist bewusst aus (Empfehlung von Spark, vermeidet einen bekannten Hänger der Quest).
 
+## Eigene Aufnahmen (optional)
+
+Im Ordner `audio/` können zwei MP3-Dateien abgelegt werden; sie werden dann statt des Platzhalter-Klangs räumlich abgespielt:
+
+- `talqin.mp3` – leises Flüstern „Lā ilāha illā Llāh“ (2–3 Mal), nah am Mikrofon aufgenommen
+- `takbir.mp3` – ein einzelnes „Allāhu akbar“ (wird viermal abgespielt)
+
+Mit dem Handy in einem ruhigen Raum aufnehmen genügt.
+
 ## Was dieser Prototyp (noch) nicht hat
 
 - **Keine Stimmen und keine Rezitation.** Texte erscheinen als Tafeln. Eine Platzhalter-Vorlesestimme (Browser-Sprachausgabe) kann auf der Startseite eingeschaltet werden, nur zum Testen des Timings.
@@ -90,6 +102,7 @@ Technik: three.js 0.180 und Spark 2.4.0 (`lib/three-0.180`, `lib/spark-2.4.0`, b
 | `js/texte.js` | Alle Texte (Arabisch, Deutsch, Quelle). Hier werden Korrekturen des Gelehrten eingetragen. |
 | `js/audio.js` | Prozeduraler Raumklang (Wind, Erde, Schritte, Glut …) |
 | `js/textpanel.js` | Schwebende Texttafeln in VR |
-| `textures/` | Erde, Lehmziegel, Gras als PBR-Texturen (Farbe, Relief, Rauheit), erzeugt mit `tools/make_textures.py` |
+| `js/scenes-life.js` | Zimmer, Gebetsraum, Schleier (Milchglas/Leichentuch), herabsinkende Lichter |
+| `textures/` | Erde, Lehmziegel, Gras, Putz, Holz, Gebetsteppich als PBR-Texturen (Farbe, Relief, Rauheit), erzeugt mit `tools/make_textures.py` |
 | `lib/` | three.js 0.160.0 (MIT-Lizenz) |
 | `fonts/` | Noto Naskh Arabic (SIL Open Font License) |

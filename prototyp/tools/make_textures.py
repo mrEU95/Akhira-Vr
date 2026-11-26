@@ -154,7 +154,54 @@ def grass():
     save('grass_normal.jpg', normal_map(h, 1.5), 92)
 
 
+def plaster():
+    """Weiß verputzte Wand (Zimmer, Gebetsraum): leicht wolkig, feine Körnung."""
+    big = fbm(2.6, 1)
+    fine = fbm(1.1, 50)
+    h = 0.3 * big + 0.25 * fine
+    col = ramp(0.5 + 0.12 * big + 0.05 * fine, [(0, (200, 196, 186)), (1, (238, 234, 224))])
+    save('plaster_color.jpg', col)
+    save('plaster_normal.jpg', normal_map(h, 0.8), 92)
+    save('plaster_rough.jpg', np.full((N, N, 3), 225))
+
+
+def wood():
+    """Holzdielen: 8 Dielen pro Kachel, Maserung, Fugen."""
+    yy, xx = np.mgrid[0:N, 0:N] / N
+    plank = np.floor(xx * 8)
+    grain = np.sin((yy * 40 + fbm(2.0, 2) * 0.6 + plank * 1.7) * np.pi * 2) * 0.5 + 0.5
+    var = (plank * 0.37) % 1
+    seam = (np.abs((xx * 8) % 1 - 0.5) > 0.485).astype(float)
+    t = 0.45 + 0.25 * grain * 0.5 + 0.2 * var + 0.06 * fbm(1.3, 30)
+    col = ramp(t, [(0, (70, 44, 26)), (0.5, (118, 80, 50)), (1, (160, 116, 76))])
+    col *= (1 - seam * 0.6)[..., None]
+    h = grain * 0.3 - seam * 1.5 + 0.1 * fbm(1.3, 30)
+    save('wood_color.jpg', col)
+    save('wood_normal.jpg', normal_map(h, 1.2), 92)
+    save('wood_rough.jpg', np.repeat((170 + 40 * grain)[..., None], 3, -1))
+
+
+def carpet():
+    """Gebetsteppich-Bahn: tiefrot mit hellen Reihenlinien (eine Reihe pro Kachel) und feinem Flor."""
+    yy, xx = np.mgrid[0:N, 0:N] / N
+    pile = fbm(0.8, 120)
+    line = np.exp(-((yy - 0.08) / 0.012) ** 2) + np.exp(-((yy - 0.92) / 0.012) ** 2)
+    border = np.exp(-((yy - 0.15) / 0.02) ** 2) * 0.6
+    # schlichtes Bogenmuster je Gebetsplatz (8 Plätze pro Kachel)
+    cx = (xx * 8) % 1 - 0.5
+    arch = np.clip(1 - np.abs(np.sqrt(cx ** 2 * 4 + (yy - 0.35) ** 2 * 1.2) - 0.42) / 0.02, 0, 1) * (yy > 0.2) * (yy < 0.85)
+    arch = arch[::-1]  # Bogen nach oben, wie die Gebetsnische
+    col = np.zeros((N, N, 3)) + np.array([118, 22, 30])
+    col *= (0.85 + 0.15 * pile)[..., None]
+    gold = np.array([196, 160, 96])
+    for m in (line, border, arch * 0.8):
+        col = col * (1 - m[..., None]) + gold * m[..., None]
+    save('carpet_color.jpg', col)
+    save('carpet_normal.jpg', normal_map(pile * 0.6 - arch * 0.4, 1.0), 92)
+    save('carpet_rough.jpg', np.full((N, N, 3), 245))
+
+
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)
-    soil(); labin(); grass()
+    soil(); labin(); grass(); plaster(); wood(); carpet()
     print('Texturen geschrieben nach', os.path.abspath(OUT))
