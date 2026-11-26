@@ -1,0 +1,26 @@
+BEGEHBARE WELTEN (Gaussian Splats) – von KI erzeugt oder mit dem Handy gescannt
+================================================================================
+
+Dateien hier ablegen:
+  zimmer.spz   (oder .ply)     Prolog „Endlich zuhause“ und Sterben
+  moschee.spz                  Totengebet           (folgt)
+  friedhof.spz                 Friedhof             (folgt)
+  zimmer-collider.glb          optional: Kollisionshülle (Wände/Boden/Möbel) – dann landen
+                               Handy und Mushaf auf echten Flächen und man läuft nicht durch Wände
+
+Für die Quest: höchstens ca. 500.000 Punkte, besser 300.000.
+
+einstellungen.json (optional), Positionen in Metern relativ zum Startpunkt:
+  { "zimmer": {
+      "umdrehen": true,        Welt um 180° drehen, falls sie kopfüber steht
+      "drehung": 0,            Drehung in Grad um die senkrechte Achse
+      "skalierung": 1,
+      "kamerahoehe": 1.6,      nur ohne Kollisionshülle: wie hoch die Kamera bei der Aufnahme war
+      "handy": [0.5, -0.6],    wo das Handy liegt
+      "mushaf": [1.2, 0.3],    wo der Mushaf liegt
+      "bett": [1.0, 0.8, 0.65],Kopf auf dem Bett (x, z, Höhe) für die Sterbeszene
+      "tuer": [0, 2]           woher das Türgeräusch kommt
+  } }
+
+Quellen: SpAItial Echo (KI aus Bild/Text), Scaniverse (Scan echter Orte).
+Rechte beachten: eigene Welten/Scans ja; fremde Welten nur mit Erlaubnis.

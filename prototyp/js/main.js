@@ -8,6 +8,7 @@ import {
 } from './world.js';
 import { Room, Mosque, Veil, DescendingLights, Panorama, PANORAMEN, ProjectedRoom, TV } from './scenes-life.js';
 import { Hands } from './hands.js';
+import { SplatWorld } from './splatworld.js';
 
 // ======================================================================
 // Grundgerüst
@@ -74,6 +75,7 @@ let allowWalk = false;                    // Gehen mit dem Stick (nur im Zimmer)
 const hands = new Hands(renderer, rig, camera);   // sichtbare Hände/Controller, Greifen
 hands.addGrabbable(room.phone);
 const tv = new TV();
+const worlds = new SplatWorld(scene, renderer);   // KI-Welten oder Scans (welten/*.spz)
 // Zimmerlicht – dimmt im Fotomodus auch das 360°-Foto
 function roomLamp(level, warm = 0) {
   room.setLamp(level, warm);
@@ -195,6 +197,7 @@ function resetWorld() {
   descLights.level = 0; descLights.headLevel = 0;
   pano.hide();
   proom.visible = false;
+  if (worlds.visible) worlds.hide();
   allowWalk = false;
   hands.release(); hands.visible = false;
   tv.on = false;
@@ -235,7 +238,22 @@ async function sceneProlog() {
   room.group.position.set(h.x, 0, h.z);
   room.visible = true;
   let doorPos = new THREE.Vector3(h.x - 1.5, 1.2, h.z + 2);
-  if (pano.has('zimmer')) {
+  if (worlds.has('zimmer')) {
+    // Fotorealistische, begehbare Welt (KI oder Scan)
+    await worlds.show('zimmer', h);
+    room.setPhotoMode(true);
+    const c = worlds.cfg('zimmer');
+    const put = (obj, xz, dflt) => {
+      const p = worlds.point(xz || dflt, 0);
+      p.y = worlds.surfaceAt(p.x, p.z);          // auf Tisch/Bett/Boden legen
+      obj.position.copy(room.group.worldToLocal(p));
+    };
+    put(room.phone, c.handy, [0.45, -0.55]);
+    put(room.mushafGroup, c.mushaf, [-0.6, -0.4]);
+    room.family.visible = false;
+    doorPos = worlds.point(c.tuer || [0, 2], 1.2);
+    allowWalk = true;
+  } else if (pano.has('zimmer')) {
     // Echter Raum: das Foto wird auf Wände, Boden, Bett, Schreibtisch projiziert – man steht darin
     proom.build('zimmer', pano.tex.zimmer);
     proom.group.position.set(h.x, 0, h.z);
@@ -302,7 +320,12 @@ async function sceneDying() {
   // Schnitt im Schwarz: er liegt auf dem Bett und schaut zur Decke
   allowWalk = false;
   hands.release(); hands.visible = false;
-  if (proom.visible) {
+  if (worlds.visible) {
+    const b = worlds.cfg('zimmer').bett;          // [x, z, Kopfhöhe]
+    lieDown('z');
+    const target = b ? worlds.point([b[0], b[1]], b[2] || 0.65) : new THREE.Vector3(head().x, 0.65, head().z);
+    placeHead(target);
+  } else if (proom.visible) {
     const d = proom.headDir;                      // Scheitel zeigt zum Kopfende des Bettes
     rig.rotation.set(Math.PI / 2, Math.atan2(d.x, d.z), 0, 'YXZ');
     placeHead(proom.world(...proom.anchors.kopfAufBett));
@@ -871,7 +894,7 @@ function walk(dt) {
   const right = new THREE.Vector3(-fwd.z, 0, fwd.x);
   const move = fwd.multiplyScalar(-fz).add(right.multiplyScalar(fx)).multiplyScalar(0.9 * dt);
   const h = head().clone().add(move);
-  const target = proom.visible ? proom.clampInside(h) : h;
+  const target = worlds.visible ? worlds.clamp(head().clone(), h) : (proom.visible ? proom.clampInside(h) : h);
   rig.position.x += target.x - head().x;
   rig.position.z += target.z - head().z;
 }
@@ -940,6 +963,7 @@ async function prepare() {
   sound.init();
   await sound.resume();
   await Promise.all([sound.loadFile('talqin.mp3'), sound.loadFile('takbir.mp3')]); // eigene Aufnahmen, falls vorhanden
+  await worlds.scan();                                                            // KI-Welten/Scans, falls vorhanden
   await pano.loadSettings();
   await Promise.all(PANORAMEN.map((n) => pano.load(n)));                           // 360°-Fotos, falls vorhanden
   try { await document.fonts.load('600 40px "Noto Naskh Arabic"'); } catch (e) { /* Systemschrift */ }
