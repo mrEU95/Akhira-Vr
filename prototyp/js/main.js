@@ -81,6 +81,7 @@ function roomLamp(level, warm = 0) {
   room.setLamp(level, warm);
   if (pano.mesh.visible) pano.brightness = Math.max(0.2, Math.min(1, level));
   if (proom.visible) proom.brightness = Math.max(0.15, Math.min(1, level));
+  if (worlds.visible) worlds.brightness = Math.max(0.15, Math.min(1, level));
 }
 let veilBase = 0;     // Grundtrübung des Schleiers
 let veilPulse = 0;    // 0..1: ab und zu kurz klar (Kampf gegen das Wegdämmern)
@@ -198,6 +199,7 @@ function resetWorld() {
   pano.hide();
   proom.visible = false;
   if (worlds.visible) worlds.hide();
+  tv.group.removeFromParent();
   allowWalk = false;
   hands.release(); hands.visible = false;
   tv.on = false;
@@ -243,13 +245,29 @@ async function sceneProlog() {
     await worlds.show('zimmer', h);
     room.setPhotoMode(true);
     const c = worlds.cfg('zimmer');
-    const put = (obj, xz, dflt) => {
-      const p = worlds.point(xz || dflt, 0);
-      p.y = worlds.surfaceAt(p.x, p.z);          // auf Tisch/Bett/Boden legen
+    const put = (obj, a, dflt) => {
+      a = a || dflt;
+      const p = worlds.point([a[0], a[1]], a[2] ?? 0);
+      if (a[2] === undefined) p.y = worlds.surfaceAt(p.x, p.z);   // auf Tisch/Bett/Boden legen
       obj.position.copy(room.group.worldToLocal(p));
+      obj.rotation.set(0, a[3] || 0, 0);
     };
     put(room.phone, c.handy, [0.45, -0.55]);
     put(room.mushafGroup, c.mushaf, [-0.6, -0.4]);
+    if (c.tv) {
+      const T = c.tv, L = (v) => worlds.point([v[0], v[2]], v[1]);
+      const a = T.oben_links, b = T.unten_rechts;
+      tv.place(L(a), L([b[0], a[1], b[2]]), L([a[0], b[1], a[2]]), L(b), new THREE.Vector3(...(T.normale || [1, 0, 0])));
+      scene.add(tv.group);
+    }
+    if (c.familie) {
+      const mid = c.bett && c.bett.mitte ? worlds.point(c.bett.mitte, 0) : null;
+      room.family.children.forEach((f, i) => {
+        const s = c.familie[i % c.familie.length];
+        f.position.copy(room.group.worldToLocal(worlds.point(s, 0)));
+        if (mid) { const m = room.group.worldToLocal(mid.clone()); f.lookAt(m.x, f.position.y, m.z); }
+      });
+    }
     room.family.visible = false;
     doorPos = worlds.point(c.tuer || [0, 2], 1.2);
     allowWalk = true;
@@ -321,9 +339,10 @@ async function sceneDying() {
   allowWalk = false;
   hands.release(); hands.visible = false;
   if (worlds.visible) {
-    const b = worlds.cfg('zimmer').bett;          // [x, z, Kopfhöhe]
-    lieDown('z');
-    const target = b ? worlds.point([b[0], b[1]], b[2] || 0.65) : new THREE.Vector3(head().x, 0.65, head().z);
+    const b = worlds.cfg('zimmer').bett;          // { kopf: [x, z, Höhe], scheitel: 'x' | 'z' }
+    const k = b && (b.kopf || b);
+    lieDown((b && b.scheitel) || 'z');
+    const target = k ? worlds.point([k[0], k[1]], k[2] || 0.65) : new THREE.Vector3(head().x, 0.65, head().z);
     placeHead(target);
   } else if (proom.visible) {
     const d = proom.headDir;                      // Scheitel zeigt zum Kopfende des Bettes
@@ -918,7 +937,7 @@ renderer.setAnimationLoop(() => {
   if (!renderer.xr.isPresenting) camera.rotation.set(pitch, yaw, 0, 'YXZ');
 
   if (allowWalk) walk(dt);
-  if (proom.visible) tv.update(dt);
+  if (proom.visible || worlds.visible) tv.update(dt);
   if (proom.visible) proom.update();
   // Schleier: Grundtrübung, ab und zu ein kurzer klarer Moment
   veil.opacity = veilBase * (1 - veilPulse * Math.pow(Math.max(0, Math.sin(now * 0.45)), 8) * 0.85);
@@ -964,6 +983,10 @@ async function prepare() {
   await sound.resume();
   await Promise.all([sound.loadFile('talqin.mp3'), sound.loadFile('takbir.mp3')]); // eigene Aufnahmen, falls vorhanden
   await worlds.scan();                                                            // KI-Welten/Scans, falls vorhanden
+  if (['all', 'prolog'].includes(document.getElementById('chapter').value) && worlds.has('zimmer')) {
+    status.textContent = 'Das Zimmer wird geladen … (beim ersten Mal bis zu einer Minute)';
+    await worlds.preload('zimmer');
+  }
   await pano.loadSettings();
   await Promise.all(PANORAMEN.map((n) => pano.load(n)));                           // 360°-Fotos, falls vorhanden
   try { await document.fonts.load('600 40px "Noto Naskh Arabic"'); } catch (e) { /* Systemschrift */ }
@@ -993,6 +1016,9 @@ btnVR.addEventListener('click', async () => {
   }
 });
 
+// Die fotorealistische Welt schon laden, während die Startseite offen ist
+worlds.scan().then(() => { if (worlds.has('zimmer')) worlds.preload('zimmer'); });
+
 (async () => {
   if (navigator.xr && await navigator.xr.isSessionSupported('immersive-vr').catch(() => false)) {
     btnVR.disabled = false;
@@ -1005,4 +1031,4 @@ btnVR.addEventListener('click', async () => {
 })();
 
 // Für automatisierte Tests
-window.__akhira = { run, scene, camera, grave, TX, get now() { return now; }, skipText, setLook: (y, p) => { yaw = y; pitch = p; } };
+window.__akhira = { run, scene, camera, grave, TX, worlds, get now() { return now; }, skipText, setLook: (y, p) => { yaw = y; pitch = p; } };
