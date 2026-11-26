@@ -41,6 +41,12 @@ Diese Liste fasst alles zusammen, was vor der Produktion bestätigt, korrigiert 
 | F | Der Tod als Widder – gar nicht zeigen? | Gar nicht zeigen | |
 | E.2 | Der frei formulierte Satz ist ersetzt durch Al-Munāfiqūn 63:10 („…bevor der Tod zu einem von euch kommt und er sagt: ‚Mein Herr, würdest Du mich doch auf eine kurze Frist zurückstellen…‘“) | Festgelegt | |
 | E.4 | Adhān des Fajr als Schlusston | Ja | |
+| P.5 | Qāf 50:22 („…so ist dein Blick heute scharf“) als Bild für den Moment des Todes – vertretbar, obwohl viele Tafsīr ihn auf den Tag der Auferstehung beziehen? | Ja, mit Hinweis; sonst nur das Bild ohne Vers | |
+| 1B | Diener B sagt „Ich bereue jetzt“ – die Worte aus An-Nisāʾ 4:18 – zulässig? | Ja | |
+| 1B | Die „ausgestreckten Hände“ der Engel (6:93) nur als Text, im Bild nur heranrückende Dunkelheit – bestätigt? | Ja | |
+| 3.00 | Totengebet: Sicht durch das Leichentuch, Imam nur als Stimme, Betende nur hörbar – angemessen? | Ja | |
+| 3.00 | Die Stimme auf der Bahre (Bukhari 1316) wird nur erzählt, nicht vertont – bestätigt? | Ja | |
+| 3.00 | Die Waschung wird nicht aus Sicht des Verstorbenen gezeigt (schwache Überlieferung) – bestätigt? | Ja | |
 
 ## C. Quellenverzeichnis
 
@@ -93,6 +99,11 @@ Bitte Wortlaut und Grad jeder Quelle bestätigen.
 | Az-Zumar 39:53 | E.4 | |
 | Al-Ḥashr 59:18 | E.4 | |
 | Al-Munāfiqūn 63:10 | E.2 | |
+| Qāf 50:22 | P.5 | |
+| Al-Qiyāma 75:26–30 | P.3 | |
+| An-Naḥl 16:32 | 1A | |
+| Al-Anʿām 6:93 | 1B | |
+| An-Nisāʾ 4:18 | 1B | |
 
 ### Hadith
 
@@ -131,6 +142,17 @@ Bitte Wortlaut und Grad jeder Quelle bestätigen.
 | Bukhari 44 · Muslim 193 | Herausgeholt, wer ein Körnchen Glauben hat | E.3 | |
 | Tirmidhi 3540 | „Solange du Mich anrufst…“ | E.3 | |
 | Muslim 966 | Lahd und hochkant gestellte Lehmziegel (Saʿd ibn Abī Waqqāṣ) | 3.0 | |
+| Bukhari 6510 | Der Prophet ﷺ: „Der Tod hat wahrlich seine Trunkenheiten“ | P.3 | |
+| Muslim 916 | „Sprecht euren Sterbenden Lā ilāha illā Llāh vor“ | P.4 | |
+| Abu Dawud 3116 | Wessen letztes Wort Lā ilāha illā Llāh ist | P.4 | |
+| Bukhari 6507 · Muslim 2684 | Wer die Begegnung mit Allah liebt | 1A, 1B | |
+| Tirmidhi 3537 | Reue angenommen, solange er nicht röchelt | 1B | |
+| Muslim 920 | „Wenn die Seele genommen wird, folgt ihr der Blick“ | 1A.2 | |
+| Tirmidhi 994 · Abu Dawud 3878 | Weiße Kleidung, Leichentuch | 3.00 | |
+| Bukhari 1245 · Muslim 951 | Vier Takbīr beim Totengebet | 3.00 | |
+| Muslim 948 | Vierzig Betende, Fürsprache angenommen | 3.00 | |
+| Bukhari 1315 | Beeilt euch mit dem Toten | 3.00 | |
+| Bukhari 1316 | „Bringt mich voran!“ / „Wehe ihm!“ auf der Bahre | 3.00 | |
 
 ## D. Bewusst NICHT verwendet (schwach oder ohne Grundlage)
 

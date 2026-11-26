@@ -116,25 +116,71 @@ Der Zuschauer **ist** al-ʿAbd. Kamera = Augen. Kein sichtbarer Körper, höchst
 
 `QUELLE` Tirmidhi 2307 (hasan)
 
+### Szene P.3 – Die Trunkenheit des Todes (Sakarāt al-Mawt)
+
+**Regieidee:** *Die Welt verschwimmt – das Verborgene wird scharf.* Alles Diesseitige verliert seine Schärfe, bis in Szene P.5 etwas sichtbar wird, das vorher unsichtbar war.
+
+`BILD` Der Zuschauer sinkt langsam nach hinten aufs Bett (sehr langsam, 8 Sekunden). Die Decke des Zimmers füllt das Blickfeld. Das Bild wird **unscharf** – erst an den Rändern, dann zur Mitte hin. Die Lampe wird zu einem weichen Lichtfleck. Farben verblassen. Ab und zu wird das Bild für einen Moment wieder klar – und verschwimmt erneut, wie bei jemandem, der gegen den Schlaf ankämpft.
+
+`TON` Der Raumklang wird dumpf, wie unter Wasser. Übrig bleiben: der eigene Atem, schwer und unregelmäßig, ein Herzschlag. Ganz entfernt, gedämpft: Stimmen von Angehörigen (nicht verständlich), jemand weint leise.
+
 `TEXT` REZ / ÜBS:
 > **وَجَاءَتْ سَكْرَةُ الْمَوْتِ بِالْحَقِّ ۖ ذَٰلِكَ مَا كُنتَ مِنْهُ تَحِيدُ**
 > „Und die Trunkenheit des Todes kommt mit der Wahrheit. Das ist es, dem du immer ausweichen wolltest.“
 
 `QUELLE` Qāf 50:19
 
-`BILD` Der Zuschauer sinkt langsam nach hinten aufs Bett (Kamerafahrt sehr langsam, 8 Sekunden). Die Decke des Zimmers füllt das Blickfeld.
+`TEXT` HAD:
+> ʿĀʾisha berichtete, dass vor dem Gesandten Allahs ﷺ in seiner Todesstunde ein Gefäß mit Wasser stand. Er tauchte seine Hände hinein, strich sich damit über das Gesicht und sagte: **„لَا إِلَهَ إِلَّا اللَّهُ، إِنَّ لِلْمَوْتِ سَكَرَاتٍ“** – „Lā ilāha illā Llāh – der Tod hat wahrlich seine Trunkenheiten.“
 
-`VR` ⚠ Komfort: Neigung maximal 60°, sehr langsam, mit leichter Abdunklung der Ränder (Vignette).
+`QUELLE` Bukhari 6510
 
-### Szene P.3 – An der Kehle
+`TEXT` REZ / ÜBS:
+> **كَلَّا إِذَا بَلَغَتِ التَّرَاقِيَ ﴿٢٦﴾ وَقِيلَ مَنْ ۜ رَاقٍ ﴿٢٧﴾ وَظَنَّ أَنَّهُ الْفِرَاقُ ﴿٢٨﴾ وَالْتَفَّتِ السَّاقُ بِالسَّاقِ ﴿٢٩﴾ إِلَىٰ رَبِّكَ يَوْمَئِذٍ الْمَسَاقُ**
+> „Keineswegs! Wenn sie die Schlüsselbeine erreicht und gesagt wird: ‚Wer kann ihn noch heilen?‘, und er überzeugt ist, dass es der Abschied ist, und sich Bein an Bein schmiegt – zu deinem Herrn wird an jenem Tag das Treiben sein.“
 
-`TON` Der Raumklang verschwindet nach und nach. Übrig bleibt: der eigene Atem, ein Herzschlag. Ganz entfernt, gedämpft: Stimmen von Angehörigen (nicht verständlich).
+`QUELLE` Al-Qiyāma 75:26–30
+
+`VR` ⚠ Komfort: Neigung maximal 60°, sehr langsam. Die Unschärfe wird als weicher Filter über das ganze Bild gelegt, nicht als Doppelbild (das verursacht in VR Übelkeit).
+
+### Szene P.4 – Die Stimmen am Bett
+
+`BILD` Unscharf, am Rand des Blickfelds: Umrisse von Menschen am Bett (gesichtslos, G12). Eine Hand legt sich auf die Hand des Zuschauers.
+
+`TON` Durch das Dumpfe hindurch, plötzlich **klar und nah**, eine leise Stimme direkt neben dem Ohr: **„Lā ilāha illā Llāh … Lā ilāha illā Llāh …“** – sanft, nicht drängend.
+
+`TEXT` HAD:
+> Der Gesandte Allahs ﷺ sagte: **„لَقِّنُوا مَوْتَاكُمْ لَا إِلَهَ إِلَّا اللَّهُ“** – „Sprecht euren Sterbenden ‚Lā ilāha illā Llāh‘ vor.“
+
+`QUELLE` Muslim 916
+
+> Und er ﷺ sagte: **„مَنْ كَانَ آخِرُ كَلَامِهِ لَا إِلَهَ إِلَّا اللَّهُ دَخَلَ الْجَنَّةَ“** – „Wessen letztes Wort ‚Lā ilāha illā Llāh‘ ist, der geht ins Paradies ein.“
+
+`QUELLE` Abu Dawud 3116
 
 `TEXT` REZ / ÜBS:
 > **فَلَوْلَا إِذَا بَلَغَتِ الْحُلْقُومَ ﴿٨٣﴾ وَأَنتُمْ حِينَئِذٍ تَنظُرُونَ ﴿٨٤﴾ وَنَحْنُ أَقْرَبُ إِلَيْهِ مِنكُمْ وَلَٰكِن لَّا تُبْصِرُونَ**
 > „Wenn sie doch – wenn sie die Kehle erreicht und ihr in diesem Augenblick zuschaut – Wir sind ihm näher als ihr, doch ihr seht es nicht.“
 
 `QUELLE` Al-Wāqiʿa 56:83–85
+
+`BILD` **Die Angehörigen sehen nichts** – das ist der Schlüssel der Szene. Sie bleiben unscharf am Bett, ihre Stimmen gehen normal weiter. Nur der Zuschauer wird gleich sehen.
+
+### Szene P.5 – Die Hülle wird weggenommen
+
+`BILD` Mitten in der Unschärfe: Von **oben** – nicht durch die Wände, sondern **vom Himmel herab**, wie der Hadith sagt – wird etwas **gestochen scharf**. Die Zimmerdecke bleibt verschwommen, aber durch sie hindurch zeichnet sich eine Bewegung ab, die schärfer ist als alles, was der Zuschauer je gesehen hat. Was es ist, zeigt erst Akt I – hier nur: *Schärfe, die von oben näherkommt.*
+
+`TON` Alle Geräusche der Welt fallen weg wie abgeschnitten. Die Stimmen der Angehörigen – weg. Der Herzschlag – weg. Völlige Stille.
+
+`TEXT` REZ / ÜBS:
+> **لَّقَدْ كُنتَ فِي غَفْلَةٍ مِّنْ هَٰذَا فَكَشَفْنَا عَنكَ غِطَاءَكَ فَبَصَرُكَ الْيَوْمَ حَدِيدٌ**
+> „Du warst dessen gegenüber achtlos. Nun haben Wir dir deine Hülle weggenommen, und so ist dein Blick heute scharf.“
+
+`QUELLE` Qāf 50:22
+
+`⚠ PRÜFEN` Viele Tafsīr-Gelehrte beziehen 50:22 auf den Tag der Auferstehung, manche auf den Moment des Todes. Ist es vertretbar, den Vers hier als Bild für den Tod einzusetzen? (Alternative: den Vers erst in Akt V verwenden und hier nur das Bild ohne Text.)
+
+`VR` **Technik:** Weltgeometrie (Zimmer, Angehörige) unter einem Unschärfe-Filter; Lichter von oben ohne Filter. So entsteht der Effekt „die Welt verschwimmt, das Verborgene ist scharf“.
 
 `BILD` Schnitt auf Schwarz. Drei Sekunden absolute Stille.
 
@@ -183,11 +229,27 @@ HAD (Zitat, ruhig, mit leichtem Raumhall):
 
 `QUELLE` Fuṣṣilat 41:30
 
+`TEXT` REZ / ÜBS:
+> **الَّذِينَ تَتَوَفَّاهُمُ الْمَلَائِكَةُ طَيِّبِينَ ۙ يَقُولُونَ سَلَامٌ عَلَيْكُمُ ادْخُلُوا الْجَنَّةَ بِمَا كُنتُمْ تَعْمَلُونَ**
+> „Diejenigen, die die Engel abberufen, während sie gut sind; sie sagen: ‚Friede sei mit euch! Tretet ins Paradies ein für das, was ihr zu tun pflegtet.‘“
+
+`QUELLE` An-Naḥl 16:32
+
+`TEXT` HAD:
+> Der Gesandte Allahs ﷺ sagte: „Wer die Begegnung mit Allah liebt, dessen Begegnung liebt Allah.“ ʿĀʾisha sagte: „Wir alle verabscheuen doch den Tod.“ Er sagte: „So ist es nicht. Wenn den Gläubigen der Tod ereilt, wird ihm die frohe Botschaft von Allahs Wohlgefallen und Seiner Ehrung überbracht, und da ist ihm nichts lieber als das, was vor ihm liegt.“
+
+`QUELLE` Bukhari 6507 · Muslim 2684
+
 ### Szene 1A.2 – Die Seele fließt
 
 `BILD` Der Blick hebt sich **sanft** vom Bett – wie ein Tropfen, der sich löst. Unten, unscharf und nur als Umriss, bleibt das Bett zurück (kein erkennbarer Körper, kein Gesicht – nur eine verhüllte Form unter der Decke).
 
 `TON` Ein einzelner, klarer Wassertropfen. Dann Stille.
+
+`TEXT` HAD (leise, während der Blick nach oben gleitet):
+> Der Gesandte Allahs ﷺ sagte: **„إِنَّ الرُّوحَ إِذَا قُبِضَ تَبِعَهُ الْبَصَرُ“** – „Wenn die Seele genommen wird, folgt ihr der Blick.“
+
+`QUELLE` Muslim 920 (überliefert von Umm Salama; er ﷺ schloss danach die Augen des verstorbenen Abū Salama)
 
 `TEXT` HAD:
 > „Da tritt sie heraus und fließt, wie der Tropfen aus der Öffnung des Wasserschlauchs fließt. Er nimmt sie, und wenn er sie genommen hat, lassen sie sie nicht einen Augenblick in seiner Hand, bis sie sie in jenes Leichentuch und jenen Duft legen. Und es strömt von ihr aus wie der beste Duft von Moschus, der auf dem Antlitz der Erde zu finden ist.“
@@ -229,6 +291,30 @@ HAD (Zitat, hart):
 > „O schlechte Seele, komm heraus zu Zorn von Allah und Grimm.“
 
 `QUELLE` Abu Dawud 4753 · Ahmad 18534
+
+`TEXT` REZ / ÜBS:
+> **وَلَوْ تَرَىٰ إِذِ الظَّالِمُونَ فِي غَمَرَاتِ الْمَوْتِ وَالْمَلَائِكَةُ بَاسِطُو أَيْدِيهِمْ أَخْرِجُوا أَنفُسَكُمُ ۖ الْيَوْمَ تُجْزَوْنَ عَذَابَ الْهُونِ**
+> „Könntest du nur sehen, wenn die Ungerechten sich in den Fluten des Todes befinden, während die Engel ihre Hände ausstrecken: ‚Gebt eure Seelen heraus! Heute wird euch mit der Strafe der Schmach vergolten…‘“
+
+`QUELLE` Al-Anʿām 6:93
+
+`BILD` **Keine Hände im Bild** (G3). Nur: Die Dunkelheit rückt von allen Seiten gleichzeitig heran.
+
+DIENER B (gepresst, in die Stille hinein):
+> „Ich bereue … ich bereue jetzt …“
+
+`TEXT` REZ / ÜBS:
+> **وَلَيْسَتِ التَّوْبَةُ لِلَّذِينَ يَعْمَلُونَ السَّيِّئَاتِ حَتَّىٰ إِذَا حَضَرَ أَحَدَهُمُ الْمَوْتُ قَالَ إِنِّي تُبْتُ الْآنَ**
+> „Die Reue ist nicht für diejenigen, die Böses tun, bis, wenn der Tod zu einem von ihnen kommt, er sagt: ‚Jetzt bereue ich.‘“
+
+`QUELLE` An-Nisāʾ 4:18 · vgl. Tirmidhi 3537: „Allah nimmt die Reue des Dieners an, solange er nicht in den letzten Zügen röchelt.“
+
+`TEXT` HAD:
+> „… Und wenn den Ungläubigen der Tod ereilt, wird ihm die Botschaft von Allahs Strafe überbracht, und da ist ihm nichts verhasster als das, was vor ihm liegt. So verabscheut er die Begegnung mit Allah, und Allah verabscheut die Begegnung mit ihm.“
+
+`QUELLE` Bukhari 6507 · Muslim 2684
+
+`⚠ PRÜFEN` Die Worte „Ich bereue jetzt“ sind die Worte aus 4:18 („إِنِّي تُبْتُ الْآنَ“), dem Diener B in den Mund gelegt. Zulässig?
 
 ### Szene 1B.2 – Die Seele wird gezogen
 
@@ -342,9 +428,52 @@ HAD (Zitat, hart):
 
 ## AKT III – DAS GRAB
 
-**Dauer:** 9:00 (gemeinsam 1:30 · A 4:00 · B 3:30)
+**Dauer:** 12:00 (Totengebet 3:00 · Beerdigung 1:30 · A 4:00 · B 3:30)
 
 > „Das Grab ist die erste Station des Jenseits. Wer aus ihr gerettet wird, für den ist das, was danach kommt, leichter. Und wer aus ihr nicht gerettet wird, für den ist das, was danach kommt, schwerer.“ – Tirmidhi 2308 (hasan), Wort des Propheten ﷺ, überliefert von ʿUthmān
+
+---
+
+### Szene 3.00 – Waschung, Leichentuch und Totengebet (gemeinsam)
+
+**Ort:** Gebetsraum einer Moschee (KI-Welt, fotorealistisch, ca. 300.000 Punkte, menschenleer erzeugt).
+
+`TEXT` HAD (über Schwarz, nach dem Aufstieg – die Seele wurde „zur Erde zurückgebracht“):
+> Sie waschen ihn und hüllen ihn in Weiß. Der Gesandte Allahs ﷺ sagte: **„الْبَسُوا مِنْ ثِيَابِكُمُ الْبَيَاضَ فَإِنَّهَا مِنْ خَيْرِ ثِيَابِكُمْ، وَكَفِّنُوا فِيهَا مَوْتَاكُمْ“** – „Tragt von euren Kleidern die weißen, denn sie gehören zu euren besten Kleidern, und hüllt eure Toten darin ein.“
+
+`QUELLE` Tirmidhi 994 · Abu Dawud 3878
+
+`FESTGELEGT` Die Waschung (Ghusl) wird **nicht** aus der Sicht des Verstorbenen gezeigt: Die Überlieferung, dass der Tote seine Waschung sieht, ist schwach (Liste D). Nur Wasserrauschen über Schwarz, 5 Sekunden.
+
+`BILD` Aufblende: Der Zuschauer liegt auf der Bahre vor der Gebetsnische und schaut nach oben. **Er sieht durch das Leichentuch:** ein feiner, weißer Baumwollschleier liegt über dem ganzen Blickfeld. Durch ihn hindurch, weich und hell: die Decke des Gebetsraums, die Leuchter, das Licht der Fenster.
+
+`TON` Hinter dem Zuschauer füllen sich die Reihen: viele Schritte auf Teppich, Rascheln von Stoff, gedämpftes Räuspern – dann **Stille**. Eine Stimme (der Imam, unsichtbar, nah am Kopf): **„Allāhu akbar.“** Lange Stille. **„Allāhu akbar.“** Stille. **„Allāhu akbar.“** Stille. **„Allāhu akbar.“** Dann der Salām. Keine Verbeugung, keine Niederwerfung – nur Stehen.
+
+`QUELLE` Vier Takbīr: Bukhari 1245 · Muslim 951 (Totengebet für den Negus)
+
+`TEXT` HAD (während der Stille zwischen den Takbīr):
+> Der Gesandte Allahs ﷺ sagte: **„مَا مِنْ رَجُلٍ مُسْلِمٍ يَمُوتُ فَيَقُومُ عَلَى جَنَازَتِهِ أَرْبَعُونَ رَجُلًا لَا يُشْرِكُونَ بِاللَّهِ شَيْئًا إِلَّا شَفَّعَهُمُ اللَّهُ فِيهِ“** – „Es gibt keinen muslimischen Mann, der stirbt und für dessen Totengebet vierzig Männer stehen, die Allah nichts beigesellen, ohne dass Allah ihre Fürsprache für ihn annimmt.“
+
+`QUELLE` Muslim 948
+
+`BILD` Die Bahre wird **angehoben**. Der Blick durch den Schleier gleitet langsam an der Decke entlang, durch das Tor – dann Himmel, Baumkronen, Himmel.
+
+`TEXT` HAD:
+> „Beeilt euch mit dem Toten. Ist er rechtschaffen, so ist es Gutes, zu dem ihr ihn vorausschickt. Ist er es nicht, so ist es Übles, das ihr von euren Nacken ablegt.“
+
+`QUELLE` Bukhari 1315
+
+`TEXT` HAD:
+> **„إِذَا وُضِعَتِ الْجِنَازَةُ فَاحْتَمَلَهَا الرِّجَالُ عَلَى أَعْنَاقِهِمْ، فَإِنْ كَانَتْ صَالِحَةً قَالَتْ: قَدِّمُونِي قَدِّمُونِي، وَإِنْ كَانَتْ غَيْرَ صَالِحَةٍ قَالَتْ: يَا وَيْلَهَا، أَيْنَ يَذْهَبُونَ بِهَا؟ يَسْمَعُ صَوْتَهَا كُلُّ شَيْءٍ إِلَّا الْإِنْسَانَ، وَلَوْ سَمِعَهُ صَعِقَ“**
+> „Wenn der Tote hingelegt wird und die Männer ihn auf ihre Schultern nehmen: War er rechtschaffen, sagt er: ‚Bringt mich voran! Bringt mich voran!‘ War er es nicht, sagt er: ‚Wehe ihm! Wohin bringt ihr ihn?‘ Seine Stimme hört alles außer dem Menschen – würde der Mensch sie hören, er fiele bewusstlos nieder.“
+
+`QUELLE` Bukhari 1316
+
+`TON` Wie in Szene 3B.4: **Der Zuschauer hört die Stimme nicht.** Draußen fliegen Vögel auf.
+
+`VR` ⚠ Komfort: Das Tragen nur als sehr langsames Gleiten mit sanftem, gleichmäßigem Wiegen (kleiner als 2 cm), Übergänge per Abblende. Der Schleier liegt als leicht animierte, halbtransparente Textur direkt vor den Augen.
+
+`⚠ PRÜFEN` Sicht durch das Leichentuch, der Imam nur als Stimme, die Betenden nur hörbar – angemessen? Die Stimme auf der Bahre (Bukhari 1316) wird nur erzählt, nicht vertont – bestätigt?
 
 ---
 
@@ -1192,16 +1321,16 @@ DIENER B (gebrochen, fast nur ein Hauch):
 
 | Teil | Szenen | Dauer |
 |---|---|---|
-| Prolog | P.0 – P.3 | 3:00 |
+| Prolog | P.0 – P.5 | 5:00 |
 | Akt I – Der Tod | 1A, 1A.2, 1B, 1B.2 | 6:00 |
 | Akt II – Der Aufstieg | 2A, 2B | 5:00 |
-| Akt III – Das Grab | 3.0, 3A – 3A.3, 3B – 3B.4 | 9:00 |
+| Akt III – Das Grab | 3.00, 3.0, 3A – 3A.3, 3B – 3B.4 | 12:00 |
 | Akt IV – Stunde & Auferstehung | 4.1 – 4.5 | 6:00 |
 | Akt V – Stehen & Abrechnung | 5.0 – 5.2, 5A – 5A.3, 5B – 5B.4 | 6:30 |
 | Akt VI – Die Trennung | 6.0, 6A – 6A.3, 6B – 6B.3, 6.X | 5:30 |
 | Finale – Tod des Todes | F | 1:30 |
 | Epilog – Zurück | E.1 – E.5 | 2:30 |
-| **Gesamt** | | **ca. 45:00** |
+| **Gesamt** | | **ca. 50:00** |
 
 **Empfehlung für die Produktion:** In drei Episoden aufteilen, da 45 Minuten in VR anstrengend sind:
 1. **Episode 1 – „Die Schranke“:** Prolog bis Akt III (ca. 23 Min.)
