@@ -203,6 +203,56 @@ export class Sound {
     this._heartTimer = setInterval(beat, 60000 / bpm);
   }
 
+  // Tür fällt ins Schloss: Klinke, dumpfer Schlag
+  door(x, y, z) {
+    const c = this.ctx, t = this.now;
+    const out = this._panner(x, y, z);
+    const s = this._noiseSrc(false);
+    const hp = c.createBiquadFilter(); hp.type = 'bandpass'; hp.frequency.value = 3200; hp.Q.value = 3;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.4, t + 0.005); g.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+    s.connect(hp).connect(g).connect(out); s.start(t); s.stop(t + 0.1);
+    const o = c.createOscillator(); o.type = 'sine';
+    o.frequency.setValueAtTime(95, t + 0.04); o.frequency.exponentialRampToValueAtTime(45, t + 0.4);
+    const og = c.createGain();
+    og.gain.setValueAtTime(0.0001, t + 0.04); og.gain.exponentialRampToValueAtTime(0.8, t + 0.05); og.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+    o.connect(og).connect(out); o.start(t + 0.04); o.stop(t + 0.55);
+  }
+  // Schlüssel klirren, werden abgelegt
+  keys(x, y, z) {
+    const c = this.ctx;
+    const out = this._panner(x, y, z);
+    for (let k = 0; k < 9; k++) {
+      const t = this.now + k * 0.045 + Math.random() * 0.03;
+      const o = c.createOscillator(); o.type = 'sine'; o.frequency.value = 2400 + Math.random() * 3500;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.15 + Math.random() * 0.2);
+      o.connect(g).connect(out); o.start(t); o.stop(t + 0.4);
+    }
+  }
+  // Fernseher: unverständliches Sprechen (gefiltertes Rauschen im Silbenrhythmus), über den Welt-Bus
+  tvOn(on, x = 0, y = 1.4, z = -2) {
+    const c = this.ctx;
+    if (!this._tv) {
+      const src = this._noiseSrc();
+      const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 0.9;
+      const am = c.createGain(); am.gain.value = 0;
+      const out = this._panner(x, y, z); out.disconnect(); out.connect(this.world);
+      const g = c.createGain(); g.gain.value = 0;
+      src.connect(bp).connect(am).connect(g).connect(out); src.start();
+      this._tv = { g, am, bp, out };
+      this._tvTimer = setInterval(() => {   // Silben und Pausen
+        const t = this.now;
+        const talk = Math.random() < 0.8;
+        this._tv.am.gain.setTargetAtTime(talk ? 0.4 + Math.random() * 0.6 : 0.05, t, 0.03);
+        this._tv.bp.frequency.setTargetAtTime(500 + Math.random() * 1500, t, 0.05);
+      }, 160);
+    }
+    const p = this._tv.out;
+    if (p.positionX) { p.positionX.value = x; p.positionY.value = y; p.positionZ.value = z; }
+    this._tv.g.gain.setTargetAtTime(on ? 0.22 : 0, this.now, 0.3);
+  }
+
   // Wasser, das gegossen wird (Waschung, nur als Ton)
   water(seconds = 5) {
     const c = this.ctx, t = this.now;
@@ -316,6 +366,7 @@ export class Sound {
   allOff(seconds = 1.5) {
     for (const k of Object.keys(this.layers)) this.setLevel(k, 0, seconds);
     this.heartbeat(0);
+    if (this._tv) this._tv.g.gain.setTargetAtTime(0, this.now, 0.2);
   }
 
   _crackle() {

@@ -6,7 +6,8 @@ import {
   Sky, Grave, Lahd, Clods, LightPresences, DarkPresences, LightGate, EmberOpening,
   Companion, Cemetery,
 } from './world.js';
-import { Room, Mosque, Veil, DescendingLights, Panorama, PANORAMEN, ProjectedRoom } from './scenes-life.js';
+import { Room, Mosque, Veil, DescendingLights, Panorama, PANORAMEN, ProjectedRoom, TV } from './scenes-life.js';
+import { Hands } from './hands.js';
 
 // ======================================================================
 // Grundgerüst
@@ -70,6 +71,9 @@ const descLights = new DescendingLights(scene);
 const pano = new Panorama(scene);
 const proom = new ProjectedRoom(scene);   // echter Raum aus dem 360°-Foto (mit Tiefe)
 let allowWalk = false;                    // Gehen mit dem Stick (nur im Zimmer)
+const hands = new Hands(renderer, rig, camera);   // sichtbare Hände/Controller, Greifen
+hands.addGrabbable(room.phone);
+const tv = new TV();
 // Zimmerlicht – dimmt im Fotomodus auch das 360°-Foto
 function roomLamp(level, warm = 0) {
   room.setLamp(level, warm);
@@ -192,6 +196,8 @@ function resetWorld() {
   pano.hide();
   proom.visible = false;
   allowWalk = false;
+  hands.release(); hands.visible = false;
+  tv.on = false;
   room.setPhotoMode(false); mosque.setPhotoMode(false); cemetery.setPhotoMode(false);
   panel.setMode('yaw');
   phoneOn = false;
@@ -228,6 +234,7 @@ async function sceneProlog() {
   const h = head();
   room.group.position.set(h.x, 0, h.z);
   room.visible = true;
+  let doorPos = new THREE.Vector3(h.x - 1.5, 1.2, h.z + 2);
   if (pano.has('zimmer')) {
     // Echter Raum: das Foto wird auf Wände, Boden, Bett, Schreibtisch projiziert – man steht darin
     proom.build('zimmer', pano.tex.zimmer);
@@ -236,23 +243,52 @@ async function sceneProlog() {
     proom.update();
     room.setPhotoMode(true);
     const A = proom.anchors;
-    room.phone.position.copy(proom.local(...A.handy)); room.phone.rotation.set(0, -0.5, 0);
+    room.phone.position.copy(proom.local(...A.handyBett)); room.phone.rotation.set(0, 0.9, 0);   // Handy liegt auf dem Bett
     room.mushafGroup.position.copy(proom.local(...A.mushaf)); room.mushafGroup.rotation.set(0, 0.2, 0);
     room.placeFamily(proom);
+    // Fernseher an der Wand über dem Schreibtisch
+    const T = A.tv;
+    const tl = proom.onWall(T.tl[0], T.tl[1], T.w), br = proom.onWall(T.br[0], T.br[1], T.w);
+    const tr = proom.onWall(T.br[0], T.tl[1], T.w), bl = proom.onWall(T.tl[0], T.br[1], T.w);
+    tv.place(tl, tr, bl, br, proom.local(1, 0, 0).normalize());
+    proom.group.add(tv.group);
+    doorPos = proom.world(-1.45, 1.75, 1.2);      // Tür hinten links (Flur)
     allowWalk = true;
   }
+  hands.visible = true;
   roomLamp(1, 0);
   room.family.visible = false;
+  room.screen.list = []; room.screen.next = 0; room.screen.draw();
   sound.worldLevel(1, 0.1);
-  sound.setLevel('room', 0.6, 2);
-  phoneOn = true; nextBuzz = now + 4;
-  await fadeTo(0x000000, 0, 3);
-  await wait(8);
-  await say(TX.prologTitel, 1);
-  await wait(5);
+  sound.setLevel('room', 0.5, 2);
+
+  // Nach Hause kommen: Tür fällt hinter dir ins Schloss, Schlüssel werden abgelegt
+  await wait(1);
+  sound.door(doorPos.x, doorPos.y, doorPos.z);
+  await wait(1.4);
+  sound.keys(doorPos.x + 0.4, 1.0, doorPos.z - 0.3);
+  await fadeTo(0x000000, 0, 2.5);
+  await say(TX.zuhause, -1);
+
+  // Der Fernseher geht an
+  await wait(2);
+  tv.on = true;
+  const tvPos = tv.light.getWorldPosition(new THREE.Vector3());
+  sound.tvOn(true, tvPos.x, tvPos.y, tvPos.z);
+  await wait(2);
+  panel.show(TX.hinweisGreifen);
+  await wait(7, true);
+  panel.hide();
+
+  // Das Handy: Nachrichten kommen, eine nach der anderen. Bis ~75 s oder bis er es 20 s gehalten hat.
+  phoneOn = true; nextBuzz = now + 2;
+  const t0 = now; let held = 0;
+  while (now - t0 < 75 && held < 20) {
+    await wait(0.5);
+    if (hands.holding) held += 0.5;
+  }
+  phoneOn = false;
   await say(TX.jedeSeele, 1);
-  await wait(3);
-  phoneOn = false; // das Handy hört auf zu vibrieren
   await tween(6, (t) => roomLamp(1 - 0.2 * t, t));
   await say(TX.zerstoerer, 1);
   await wait(2);
@@ -265,6 +301,7 @@ async function sceneDying() {
   await fadeTo(0x000000, 1, 2.5);
   // Schnitt im Schwarz: er liegt auf dem Bett und schaut zur Decke
   allowWalk = false;
+  hands.release(); hands.visible = false;
   if (proom.visible) {
     const d = proom.headDir;                      // Scheitel zeigt zum Kopfende des Bettes
     rig.rotation.set(Math.PI / 2, Math.atan2(d.x, d.z), 0, 'YXZ');
@@ -768,6 +805,7 @@ async function run(chapter) {
 // ======================================================================
 
 function onSelect() {
+  if (hands.consumedSelect) { hands.consumedSelect = false; return; }
   if (ended) { location.reload(); return; }
   skipText();
 }
@@ -794,6 +832,7 @@ window.addEventListener('pointermove', (e) => {
 window.addEventListener('keydown', (e) => {
   if (e.code === 'Space' && running) { e.preventDefault(); onSelect(); }
   if (e.code === 'KeyK') holdSkip = true;
+  if (e.code === 'KeyG' && hands.visible) hands.toggleDesktop();
 });
 window.addEventListener('keyup', (e) => { if (e.code === 'KeyK') holdSkip = false; });
 
@@ -856,6 +895,7 @@ renderer.setAnimationLoop(() => {
   if (!renderer.xr.isPresenting) camera.rotation.set(pitch, yaw, 0, 'YXZ');
 
   if (allowWalk) walk(dt);
+  if (proom.visible) tv.update(dt);
   if (proom.visible) proom.update();
   // Schleier: Grundtrübung, ab und zu ein kurzer klarer Moment
   veil.opacity = veilBase * (1 - veilPulse * Math.pow(Math.max(0, Math.sin(now * 0.45)), 8) * 0.85);
@@ -869,6 +909,7 @@ renderer.setAnimationLoop(() => {
       }
       nextBuzz = now + 6 + Math.random() * 4;
     }
+    if (hands.holding) phoneFlash = 1;                     // in der Hand: Bildschirm an
     phoneFlash = Math.max(0, phoneFlash - dt * 0.12);   // bleibt einige Sekunden hell
     room.phoneScreen.material.color.setScalar(0.08 + 0.92 * Math.min(1, phoneFlash * 1.5));
   }

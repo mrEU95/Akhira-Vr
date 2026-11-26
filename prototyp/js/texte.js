@@ -8,6 +8,11 @@ const BARA = 'Abu Dawud 4753 · Ahmad 18534';
 
 export const TX = {
   // ======================= PROLOG + STERBEN =======================
+  zuhause: { style: 'title', de: 'Endlich zuhause.' },
+  hinweisGreifen: {
+    style: 'hint',
+    de: 'Du kannst herumgehen (linker Stick).\nDein Handy liegt auf dem Bett – greif es mit der Seitentaste oder mit der Hand.\nAm Bildschirm: Taste G.',
+  },
   prologTitel: { style: 'title', ar: 'سَكْرَةُ الْمَوْتِ', de: 'Prolog · Die Trunkenheit des Todes' },
   jedeSeele: {
     ar: 'كُلُّ نَفْسٍ ذَائِقَةُ الْمَوْتِ ۗ وَإِنَّمَا تُوَفَّوْنَ أُجُورَكُمْ يَوْمَ الْقِيَامَةِ',

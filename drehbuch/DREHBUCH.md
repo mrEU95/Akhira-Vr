@@ -90,15 +90,30 @@ Der Zuschauer **ist** al-ʿAbd. Kamera = Augen. Kein sichtbarer Körper, höchst
 
 `VR` Sitzend empfohlen. Hinweis: „Bitte setz dich.“
 
-### Szene P.1 – Das Zimmer
+### Szene P.1 – Endlich zuhause (interaktiv)
 
-`BILD` Ein gewöhnliches Zimmer am Abend. Ein Bett, ein Schreibtisch, ein Handy, das leuchtet (Benachrichtigungen, nicht lesbar). Ein Fenster, draußen Straßenlicht. Eine halb ausgetrunkene Tasse. Auf einem Regal – unauffällig – ein Mushaf, leicht verstaubt.
+**Regieidee:** Der Zuschauer *tut* die Achtlosigkeit selbst, statt sie nur zu sehen. Er kommt nach Hause, der Fernseher läuft, er greift zum Handy – und lässt den Mushaf liegen.
 
-`TON` Raumklang: entfernter Verkehr, Kühlschrank, Vibration des Handys. Sehr realistisch, nichts Dramatisches.
+`BILD` Schwarz. Eine Tür fällt hinter dem Zuschauer ins Schloss, Schlüssel werden abgelegt. Aufblende: ein gewöhnliches Zimmer am Abend (fotorealistisch, begehbar). Bett, Schreibtisch, Fernseher an der Wand, Vorhänge. Auf dem **Nachttisch** ein Mushaf – leicht verstaubt, unberührt. Auf dem **Bett** liegt das Handy.
 
-`VR` Kamera auf Sitzhöhe auf der Bettkante. Der Zuschauer kann sich frei umsehen (3DoF/6DoF). Diese Szene ist der **Ankerpunkt**: Sie kehrt im Epilog exakt so wieder. Alle Objekte merken!
+`TEXT` Einblendung: „Endlich zuhause.“
 
-`TEXT` Nach 40 Sekunden Stille. REZ:
+`BILD` Der Fernseher geht an: wechselndes, farbiges Licht im Raum – **kein erkennbares Bild, keine Personen** (G12).
+
+`TON` Unverständliches Sprechen aus dem Fernseher, Kühlschrank, ferner Verkehr. Dann vibriert das Handy.
+
+`VR` **Interaktion:** Der Zuschauer sieht seine **eigenen Hände** (Hand-Tracking) und kann frei herumgehen. Er kann das Handy **greifen** und lesen. Nachrichten treffen nacheinander ein und bleiben unbeantwortet:
+- *Gruppe „Jungs“: Heute Abend noch zocken?*
+- *Gebetszeiten: ʿIschāʾ hat begonnen*
+- *Video-App: 1.204 neue Aufrufe*
+- *Mama: Ruf mich bitte an, wenn du Zeit hast.*
+- *Verpasster Anruf: Mama*
+
+Die Szene wartet, bis der Zuschauer das Handy eine Weile in der Hand hatte (oder höchstens etwa 75 Sekunden). Kein Text drängt ihn – was er tut, tut er selbst.
+
+`VR` Diese Szene ist der **Ankerpunkt**: Im Epilog kehrt der Zuschauer in genau dieses Zimmer zurück – dasselbe Handy, derselbe Mushaf. Dann entscheidet er, wonach er greift.
+
+`TEXT` Danach, in die Stille hinein. REZ:
 
 > **كُلُّ نَفْسٍ ذَائِقَةُ الْمَوْتِ ۗ وَإِنَّمَا تُوَفَّوْنَ أُجُورَكُمْ يَوْمَ الْقِيَامَةِ**
 

@@ -473,6 +473,8 @@ const ROOM_SPEC = {
     anchors: {
       handy: [-1.42, 0.25, 0.752],
       mushaf: [2.93, -1.18, 0.561],
+      handyBett: [1.45, -0.5, 0.552],
+      tv: { tl: [0.268, 0.432], br: [0.373, 0.551], w: -1.885 },
       kopfAufBett: [2.62, 0.25, 0.72],
       sitz: [0.0, 0.0],
     },
@@ -557,6 +559,15 @@ export class ProjectedRoom {
     if (!this.spec) return;
     this.uniforms.center.value.copy(this.group.localToWorld(new THREE.Vector3(0, this.spec.camH, 0)));
     this.uniforms.rotY.value = 0;
+  }
+  // Punkt auf einer Wand (w = const), gesehen im Foto bei (u, v) – für Overlays wie den Fernseher
+  onWall(u, v, wPlane) {
+    const th = (u - 0.5) * 2 * Math.PI, ph = (0.5 - v) * Math.PI;
+    const d = new THREE.Vector3(Math.sin(th) * Math.cos(ph), Math.sin(ph), -Math.cos(th) * Math.cos(ph));
+    const a = (this.spec.alpha * Math.PI) / 180;
+    const W = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
+    const t = wPlane / W.dot(d);
+    return new THREE.Vector3(0, this.spec.camH, 0).addScaledVector(d, t);
   }
   set brightness(v) { this.uniforms.brightness.value = v; }
   set visible(v) { this.group.visible = v; }
@@ -684,5 +695,61 @@ export class PhoneScreen {
       y += 94;
     }
     this.tex.needsUpdate = true;
+  }
+}
+
+// ======================================================================
+// Fernseher: läuft im Hintergrund – nur wechselndes Licht, keine erkennbaren Bilder oder Personen
+// ======================================================================
+export class TV {
+  constructor() {
+    this.c = document.createElement('canvas'); this.c.width = 256; this.c.height = 144;
+    this.x = this.c.getContext('2d');
+    this.tex = new THREE.CanvasTexture(this.c); this.tex.colorSpace = THREE.SRGBColorSpace;
+    this.mat = new THREE.MeshBasicMaterial({ map: this.tex, color: 0x000000 });
+    this.mesh = new THREE.Mesh(new THREE.BufferGeometry(), this.mat);
+    this.light = new THREE.PointLight(0x8aa8ff, 0, 4, 1.5);
+    this.group = new THREE.Group();
+    this.group.add(this.mesh, this.light);
+    this.on = false;
+    this.t = 0; this.scene = 0; this.next = 0;
+    this.blobs = [];
+  }
+  // Vier Ecken (lokal im Raum) setzen
+  place(tl, tr, bl, br, normal) {
+    const g = new THREE.BufferGeometry();
+    const off = normal.clone().multiplyScalar(0.012);
+    const P = [tl, bl, br, tl, br, tr].map((p) => p.clone().add(off));
+    g.setAttribute('position', new THREE.Float32BufferAttribute(P.flatMap((p) => [p.x, p.y, p.z]), 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute([0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1], 2));
+    this.mesh.geometry.dispose(); this.mesh.geometry = g;
+    const c = tl.clone().add(br).multiplyScalar(0.5);
+    this.light.position.copy(c.add(normal.clone().multiplyScalar(0.6)));
+  }
+  update(dt) {
+    if (!this.on) { this.mat.color.setScalar(0.02); this.light.intensity = 0; return; }
+    this.t += dt;
+    if (this.t > this.next) {               // „Schnitt“ im Film: neue Farbstimmung
+      this.next = this.t + 1.5 + Math.random() * 4;
+      const hue = Math.random() * 360;
+      this.blobs = Array.from({ length: 5 }, () => ({
+        x: Math.random() * 256, y: Math.random() * 144, r: 30 + Math.random() * 90,
+        vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 0.5) * 10,
+        col: `hsl(${(hue + Math.random() * 60) % 360},${40 + Math.random() * 40}%,${30 + Math.random() * 40}%)`,
+      }));
+      this.base = `hsl(${hue},30%,${10 + Math.random() * 20}%)`;
+    }
+    const x = this.x;
+    x.fillStyle = this.base || '#111'; x.fillRect(0, 0, 256, 144);
+    for (const b of this.blobs) {
+      b.x += b.vx * dt; b.y += b.vy * dt;
+      const g = x.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+      g.addColorStop(0, b.col); g.addColorStop(1, 'rgba(0,0,0,0)');
+      x.fillStyle = g; x.fillRect(0, 0, 256, 144);
+    }
+    this.tex.needsUpdate = true;
+    const flick = 0.85 + 0.15 * Math.sin(this.t * 9) * Math.sin(this.t * 2.3);
+    this.mat.color.setScalar(flick);
+    this.light.intensity = 0.9 * flick;
   }
 }
